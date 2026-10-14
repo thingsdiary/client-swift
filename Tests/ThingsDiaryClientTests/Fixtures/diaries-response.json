@@ -1,0 +1,29 @@
+{
+  "diaries": [
+    {
+      "created_at": "2026-10-14T10:00:00.123456Z",
+      "details": {
+        "data": "QScYEQPgIYL4MMaryp64m+etTHsVboFxikWb9TPYGSopH6ojgWBNDd91WNgui7GZUWt/T7NmZi6VboGqPWp9U+ZnxcK2uvo=",
+        "nonce": "AAECAwQFBgcICQoL"
+      },
+      "encryption": {
+        "diary_key_id": "key-1",
+        "encrypted_key_data": "onsMdnB4RviWHK6/vpitiP7HeeSf+c8T/4HlR3dT1hjj7iBUM3CIW+XRr5GxgyLU",
+        "encrypted_key_nonce": "DA0ODxAREhMUFRYX"
+      },
+      "encryption_keys": [
+        {
+          "created_at": "2026-10-14T10:00:00.123456Z",
+          "id": "key-1",
+          "status": "active",
+          "value": "PL+C0h1wMxzwp8doD5Na7TxAz9uR/T/9WdkD1WGlvhVSI8mdf/aysfUyIc4+jINhiYVNGLdHvUagtmJUPfW9SG5hi8io+K1juTOGfcbLK98="
+        }
+      ],
+      "id": "diary-1",
+      "updated_at": "2026-10-14T11:00:00.654321Z",
+      "version": 1791970000000
+    }
+  ],
+  "next_page_token": null
+}
+

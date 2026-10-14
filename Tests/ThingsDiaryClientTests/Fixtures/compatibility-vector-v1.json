@@ -1,0 +1,15 @@
+{
+  "secret_key": "TDKV1-000G-40R4-0M30-E209-185G-R38E-1W6",
+  "salt": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef",
+  "encryption_private_key": "X3LAKewxN21hq7S4BIOxGlKlgFqYk8TcBAeDWM61g0o=",
+  "encryption_public_key": "jjGmcQ2pJFhtf/qBjRDYkCNRKplSRrRW8Jr4mGymhFQ=",
+  "signing_seed": "GN5CK17j89zID8z4/qSDGux6iT3s4HkoPk1quC1mDF4=",
+  "signing_public_key": "Y80ZyPYy06Gmm5Jfm2mGYHC4Ho/2HDqOliSGIVM/eQE=",
+  "message": "dGhpbmdzZGlhcnkgY29tcGF0aWJpbGl0eSB2ZWN0b3IgdjE=",
+  "signature": "wxNh3yzTEoHjPISVtSvKD8UZcf7AIzK5N6DAZiBnBTrR9C2q5emxgoN8l1yND/w5trhfTXhKlpLKkXi4RLJUCg==",
+  "aes_key": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+  "aes_nonce": "AAECAwQFBgcICQoL",
+  "aes_ciphertext_and_tag": "M2q/daKWpnLsM+6r0oYVHeKi7laZFzYIQUeT4H4db8AhZp9SzhmNxn8EnX9tFiLhuq47",
+  "sealed_box": "LR3Qn+br3noHHC3CHgOJsv24Xq6mPKc6/N1KNPqrGFkgtECsnuA3QTmvu6h/eQ5q7AT5498odYsw0DZo+zaSnzeEDVhjq5MBap2pS4fBLRmA3yU="
+}
+
