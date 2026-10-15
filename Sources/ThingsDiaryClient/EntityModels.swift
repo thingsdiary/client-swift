@@ -141,7 +141,63 @@ struct WireEntry: Codable, Sendable, Equatable {
     }
 }
 
-public struct ThingsDiaryTopic: Codable, Sendable, Equatable, Identifiable {
+public struct ThingsDiaryTopicParams: Sendable, Equatable {
+    public let title: String
+    public let description: String
+    public let color: String
+    public let defaultTemplateID: String?
+
+    public init(
+        title: String,
+        description: String,
+        color: String,
+        defaultTemplateID: String? = nil
+    ) {
+        self.title = title
+        self.description = description
+        self.color = color
+        self.defaultTemplateID = defaultTemplateID
+    }
+}
+
+public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
+    public let id: String
+    public let diaryID: String
+    public let title: String
+    public let description: String
+    public let color: String
+    public let defaultTemplateID: String?
+    public let createdAt: Date
+    public let updatedAt: Date
+    public let deletedAt: Date?
+    public let version: UInt64
+
+    public init(
+        id: String,
+        diaryID: String,
+        title: String,
+        description: String,
+        color: String,
+        defaultTemplateID: String? = nil,
+        createdAt: Date,
+        updatedAt: Date,
+        deletedAt: Date? = nil,
+        version: UInt64
+    ) {
+        self.id = id
+        self.diaryID = diaryID
+        self.title = title
+        self.description = description
+        self.color = color
+        self.defaultTemplateID = defaultTemplateID
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        self.version = version
+    }
+}
+
+struct WireTopic: Codable, Sendable, Equatable {
     public let id: String
     public let diaryID: String
     public let version: UInt64
@@ -184,7 +240,43 @@ public struct ThingsDiaryTopic: Codable, Sendable, Equatable, Identifiable {
     }
 }
 
-public struct ThingsDiaryTemplate: Codable, Sendable, Equatable, Identifiable {
+public struct ThingsDiaryTemplateParams: Sendable, Equatable {
+    public let content: String
+
+    public init(content: String) {
+        self.content = content
+    }
+}
+
+public struct ThingsDiaryTemplate: Sendable, Equatable, Identifiable {
+    public let id: String
+    public let diaryID: String
+    public let content: String
+    public let createdAt: Date
+    public let updatedAt: Date
+    public let deletedAt: Date?
+    public let version: UInt64
+
+    public init(
+        id: String,
+        diaryID: String,
+        content: String,
+        createdAt: Date,
+        updatedAt: Date,
+        deletedAt: Date? = nil,
+        version: UInt64
+    ) {
+        self.id = id
+        self.diaryID = diaryID
+        self.content = content
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        self.version = version
+    }
+}
+
+struct WireTemplate: Codable, Sendable, Equatable {
     public let id: String
     public let diaryID: String
     public let version: UInt64

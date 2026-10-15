@@ -2,112 +2,301 @@ import Foundation
 import Testing
 @testable import ThingsDiaryClient
 
-@Test("topic endpoints preserve pagination, versioned writes, deletion options, and signatures")
-func topicEndpointsUseOpenAPIRequests() async throws {
-    let transport = TopicTemplateTransport()
+@Test("topics expose plaintext, paginate, encrypt writes, and preserve lifecycle options")
+func topicsUsePlaintextContract() async throws {
+    let transport = try TopicTemplateTransport()
     let client = try await topicTemplateClient(transport)
-    let topic = topicFixture()
 
-    let page = try await client.topics(diaryID: "diary-1", nextPageToken: "cursor+/=")
-    #expect(page.items == [topic])
-    #expect(page.nextPageToken == "topic-next")
-    #expect(URLComponents(url: try #require(transport.requests.last?.url), resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "cursor+/=")
+    let topics = try await client.allTopics(diaryID: "diary-1")
+    #expect(topics.map(\.id) == ["topic-1", "topic-2"])
+    #expect(topics[0].title == "Private topic")
+    #expect(topics[0].description == "Decrypted description")
+    #expect(topics[0].color == "#336699")
 
-    #expect(try await client.getTopic(diaryID: "diary-1", topicID: "topic-1") == topic)
-    #expect(try await client.putTopic(
-        diaryID: "diary-1", topicID: "topic-1", version: 1_791_970_000_000,
-        defaultTemplateID: "template-1", encryption: topic.encryption, details: topic.details
-    ) == topic)
-    let put = try #require(transport.requests.last)
-    let signatureHeader = try #require(put.headers["X-Signature"])
-    let signature = try #require(Data(base64Encoded: signatureHeader))
-    let auth = try #require(await client.authentication)
-    #expect(try ThingsDiaryCrypto.verify(signature, for: put.body, publicKey: auth.credentials.signingPublicKey))
-    let body = try #require(JSONSerialization.jsonObject(with: put.body) as? [String: Any])
-    #expect(body["version"] as? Int == 1_791_970_000_000)
-    #expect(body["default_template_id"] as? String == "template-1")
+    let created = try await client.createTopic(
+        diaryID: "diary-1",
+        topicID: "topic-new",
+        params: ThingsDiaryTopicParams(
+            title: "New topic",
+            description: "Created in Swift",
+            color: "#123456",
+            defaultTemplateID: "template-1"
+        )
+    )
+    #expect(created.id == "topic-new")
+    #expect(created.title == "New topic")
+    #expect(created.defaultTemplateID == "template-1")
+    let createRequest = try #require(transport.lastRequest(method: "PUT"))
+    try await expectValidSignature(createRequest, client: client)
+    let createBody = try #require(JSONSerialization.jsonObject(with: createRequest.body) as? [String: Any])
+    #expect(createBody["details"] != nil)
+    #expect(createBody["encryption"] != nil)
+    #expect(createBody["title"] == nil)
 
-    try await client.deleteTopic(diaryID: "diary-1", topicID: "topic-1", deleteEntries: true, soft: false)
-    let deleteQuery = URLComponents(url: try #require(transport.requests.last?.url), resolvingAgainstBaseURL: false)?.queryItems
+    let updated = try await client.updateTopic(
+        created,
+        params: ThingsDiaryTopicParams(
+            title: "Renamed topic",
+            description: "Updated in Swift",
+            color: "#654321"
+        )
+    )
+    #expect(updated.title == "Renamed topic")
+    #expect(updated.version > created.version)
+
+    try await client.deleteTopic(
+        diaryID: "diary-1",
+        topicID: "topic-1",
+        deleteEntries: true,
+        soft: false
+    )
+    let deleteQuery = URLComponents(
+        url: try #require(transport.requests.last?.url),
+        resolvingAgainstBaseURL: false
+    )?.queryItems
     #expect(deleteQuery?.first(where: { $0.name == "delete_entries" })?.value == "true")
     #expect(deleteQuery?.first(where: { $0.name == "soft" })?.value == "false")
-    #expect(try await client.restoreTopic(diaryID: "diary-1", topicID: "topic-1") == topic)
+    #expect(try await client.restoreTopic(diaryID: "diary-1", topicID: "topic-1").title == "Private topic")
 }
 
-@Test("template endpoints preserve pagination, versioned writes, deletion options, and signatures")
-func templateEndpointsUseOpenAPIRequests() async throws {
-    let transport = TopicTemplateTransport()
+@Test("templates expose plaintext, paginate, encrypt writes, and restore")
+func templatesUsePlaintextContract() async throws {
+    let transport = try TopicTemplateTransport()
     let client = try await topicTemplateClient(transport)
-    let template = templateFixture()
 
-    let page = try await client.templates(diaryID: "diary-1", nextPageToken: "next+/=")
-    #expect(page.items == [template])
-    #expect(page.nextPageToken == "template-next")
-    #expect(try await client.getTemplate(diaryID: "diary-1", templateID: "template-1") == template)
-    #expect(try await client.putTemplate(
-        diaryID: "diary-1", templateID: "template-1", version: 1_791_970_000_000,
-        encryption: template.encryption, details: template.details
-    ) == template)
-    let put = try #require(transport.requests.last)
-    let signatureHeader = try #require(put.headers["X-Signature"])
-    let signature = try #require(Data(base64Encoded: signatureHeader))
-    let auth = try #require(await client.authentication)
-    #expect(try ThingsDiaryCrypto.verify(signature, for: put.body, publicKey: auth.credentials.signingPublicKey))
-    #expect((try #require(JSONSerialization.jsonObject(with: put.body) as? [String: Any]))["version"] as? Int == 1_791_970_000_000)
+    let templates = try await client.allTemplates(diaryID: "diary-1")
+    #expect(templates.map(\.id) == ["template-1", "template-2"])
+    #expect(templates[0].content == "# Private template")
+
+    let created = try await client.createTemplate(
+        diaryID: "diary-1",
+        templateID: "template-new",
+        params: ThingsDiaryTemplateParams(content: "# Created in Swift")
+    )
+    #expect(created.id == "template-new")
+    #expect(created.content == "# Created in Swift")
+    let createRequest = try #require(transport.lastRequest(method: "PUT"))
+    try await expectValidSignature(createRequest, client: client)
+    let createBody = try #require(JSONSerialization.jsonObject(with: createRequest.body) as? [String: Any])
+    #expect(createBody["details"] != nil)
+    #expect(createBody["encryption"] != nil)
+    #expect(createBody["content"] == nil)
+
+    let updated = try await client.updateTemplate(
+        created,
+        params: ThingsDiaryTemplateParams(content: "# Updated in Swift")
+    )
+    #expect(updated.content == "# Updated in Swift")
+    #expect(updated.version > created.version)
 
     try await client.deleteTemplate(diaryID: "diary-1", templateID: "template-1", soft: false)
-    #expect(URLComponents(url: try #require(transport.requests.last?.url), resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "false")
-    #expect(try await client.restoreTemplate(diaryID: "diary-1", templateID: "template-1") == template)
+    let deleteQuery = URLComponents(
+        url: try #require(transport.requests.last?.url),
+        resolvingAgainstBaseURL: false
+    )?.queryItems
+    #expect(deleteQuery?.first(where: { $0.name == "soft" })?.value == "false")
+    #expect(try await client.restoreTemplate(diaryID: "diary-1", templateID: "template-1").content == "# Private template")
 }
 
 private func topicTemplateClient(_ transport: TopicTemplateTransport) async throws -> ThingsDiaryClient {
-    let client = ThingsDiaryClient(baseURL: URL(string: "https://example.test/api")!, transport: transport)
-    _ = try await client.register(login: "person@example.test", password: "secret", secretKey: "TDKV1-000G-40R4-0M30-E209-185G-R38E-1W6", kdfSalt: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef")
+    let client = ThingsDiaryClient(
+        baseURL: URL(string: "https://example.test/api")!,
+        transport: transport
+    )
+    _ = try await client.register(
+        login: "person@example.test",
+        password: "secret",
+        secretKey: TopicTemplateTransport.secretKey,
+        kdfSalt: TopicTemplateTransport.salt
+    )
     return client
 }
 
-private func topicFixture() -> ThingsDiaryTopic {
-    ThingsDiaryTopic(id: "topic-1", diaryID: "diary-1", version: 1_791_970_000_000,
-        createdAt: Date(timeIntervalSince1970: 1_791_936_000), updatedAt: Date(timeIntervalSince1970: 1_791_936_100),
-        defaultTemplateID: "template-1", encryption: entityEncryption(), details: entityDetails())
-}
-
-private func templateFixture() -> ThingsDiaryTemplate {
-    ThingsDiaryTemplate(id: "template-1", diaryID: "diary-1", version: 1_791_970_000_000,
-        createdAt: Date(timeIntervalSince1970: 1_791_936_000), updatedAt: Date(timeIntervalSince1970: 1_791_936_100),
-        encryption: entityEncryption(), details: entityDetails())
-}
-
-private func entityEncryption() -> ThingsDiaryEntityEncryption {
-    ThingsDiaryEntityEncryption(diaryKeyID: "key-1", encryptedKeyNonce: Data([8]), encryptedKeyData: Data([9]))
-}
-
-private func entityDetails() -> ThingsDiaryEncryptedPayload {
-    ThingsDiaryEncryptedPayload(nonce: Data([1]), data: Data([1, 2, 3]))
+private func expectValidSignature(
+    _ request: ThingsDiaryHTTPRequest,
+    client: ThingsDiaryClient
+) async throws {
+    let signatureHeader = try #require(request.headers["X-Signature"])
+    let signature = try #require(Data(base64Encoded: signatureHeader))
+    let authentication = try #require(await client.authentication)
+    #expect(try ThingsDiaryCrypto.verify(
+        signature,
+        for: request.body,
+        publicKey: authentication.credentials.signingPublicKey
+    ))
 }
 
 private final class TopicTemplateTransport: ThingsDiaryTransport, @unchecked Sendable {
+    static let secretKey = "TDKV1-000G-40R4-0M30-E209-185G-R38E-1W6"
+    static let salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"
+
     private(set) var requests: [ThingsDiaryHTTPRequest] = []
-    private let topic = #"{"id":"topic-1","diary_id":"diary-1","version":1791970000000,"created_at":"2026-10-14T00:00:00Z","updated_at":"2026-10-14T00:01:40Z","default_template_id":"template-1","encryption":{"diary_key_id":"key-1","encrypted_key_nonce":"CA==","encrypted_key_data":"CQ=="},"details":{"nonce":"AQ==","data":"AQID"}}"#
-    private let template = #"{"id":"template-1","diary_id":"diary-1","version":1791970000000,"created_at":"2026-10-14T00:00:00Z","updated_at":"2026-10-14T00:01:40Z","encryption":{"diary_key_id":"key-1","encrypted_key_nonce":"CA==","encrypted_key_data":"CQ=="},"details":{"nonce":"AQ==","data":"AQID"}}"#
+    private let sealedDiaryKey: String
+    private let topicFixtures: [[String: Any]]
+    private let templateFixtures: [[String: Any]]
+
+    init() throws {
+        let diaryKey = Data(repeating: 7, count: 32)
+        let credentials = try ThingsDiaryCrypto.deriveCredentials(
+            secretKey: Self.secretKey,
+            salt: Self.salt
+        )
+        sealedDiaryKey = try ThingsDiaryCrypto.seal(
+            diaryKey,
+            recipientPublicKey: credentials.encryptionPublicKey
+        ).base64EncodedString()
+        topicFixtures = try [
+            Self.topicFixture(id: "topic-1", diaryKey: diaryKey),
+            Self.topicFixture(id: "topic-2", diaryKey: diaryKey),
+        ]
+        templateFixtures = try [
+            Self.templateFixture(id: "template-1", diaryKey: diaryKey),
+            Self.templateFixture(id: "template-2", diaryKey: diaryKey),
+        ]
+    }
+
+    func lastRequest(method: String) -> ThingsDiaryHTTPRequest? {
+        requests.last(where: { $0.method == method })
+    }
 
     func send(_ request: ThingsDiaryHTTPRequest) async throws -> ThingsDiaryHTTPResponse {
         requests.append(request)
         switch request.url.path {
-        case "/api/v1/auth/register": return response(201, #"{"token":"session-token"}"#)
-        case "/api/v1/diaries/diary-1/topics": return response(200, #"{"topics":["# + topic + #"],"next_page_token":"topic-next"}"#)
-        case "/api/v1/diaries/diary-1/topics/topic-1":
-            return request.method == "DELETE" ? ThingsDiaryHTTPResponse(statusCode: 204, body: Data()) : response(200, #"{"topic":"# + topic + #"}"#)
-        case "/api/v1/diaries/diary-1/topics/topic-1/restore": return response(200, #"{"topic":"# + topic + #"}"#)
-        case "/api/v1/diaries/diary-1/templates": return response(200, #"{"templates":["# + template + #"],"next_page_token":"template-next"}"#)
-        case "/api/v1/diaries/diary-1/templates/template-1":
-            return request.method == "DELETE" ? ThingsDiaryHTTPResponse(statusCode: 204, body: Data()) : response(200, #"{"template":"# + template + #"}"#)
-        case "/api/v1/diaries/diary-1/templates/template-1/restore": return response(200, #"{"template":"# + template + #"}"#)
-        default: Issue.record("Unexpected request: \(request.url)"); return ThingsDiaryHTTPResponse(statusCode: 404, body: Data())
+        case "/api/v1/auth/register":
+            return response(201, ["token": "session-token"])
+        case "/api/v1/diaries/diary-1/keys":
+            return response(200, [
+                "keys": [["id": "key-1", "value": sealedDiaryKey, "status": "active"]]
+            ])
+        case "/api/v1/diaries/diary-1/topics":
+            let secondPage = pageToken(request) == "topic-next"
+            return response(200, [
+                "topics": [topicFixtures[secondPage ? 1 : 0]],
+                "next_page_token": secondPage ? NSNull() : "topic-next",
+            ])
+        case let path where path.hasPrefix("/api/v1/diaries/diary-1/topics/"):
+            return try topicResponse(request)
+        case "/api/v1/diaries/diary-1/templates":
+            let secondPage = pageToken(request) == "template-next"
+            return response(200, [
+                "templates": [templateFixtures[secondPage ? 1 : 0]],
+                "next_page_token": secondPage ? NSNull() : "template-next",
+            ])
+        case let path where path.hasPrefix("/api/v1/diaries/diary-1/templates/"):
+            return try templateResponse(request)
+        default:
+            Issue.record("Unexpected request: \(request.method) \(request.url)")
+            return ThingsDiaryHTTPResponse(statusCode: 404, body: Data())
         }
     }
 
-    private func response(_ status: Int, _ body: String) -> ThingsDiaryHTTPResponse {
-        ThingsDiaryHTTPResponse(statusCode: status, body: Data(body.utf8))
+    private func topicResponse(_ request: ThingsDiaryHTTPRequest) throws -> ThingsDiaryHTTPResponse {
+        if request.method == "DELETE" {
+            return ThingsDiaryHTTPResponse(statusCode: 204, body: Data())
+        }
+        if request.method == "PUT" {
+            return response(200, ["topic": try entityResponseBody(request, kind: "topic")])
+        }
+        return response(200, ["topic": topicFixtures[0]])
+    }
+
+    private func templateResponse(_ request: ThingsDiaryHTTPRequest) throws -> ThingsDiaryHTTPResponse {
+        if request.method == "DELETE" {
+            return ThingsDiaryHTTPResponse(statusCode: 204, body: Data())
+        }
+        if request.method == "PUT" {
+            return response(200, ["template": try entityResponseBody(request, kind: "template")])
+        }
+        return response(200, ["template": templateFixtures[0]])
+    }
+
+    private func entityResponseBody(
+        _ request: ThingsDiaryHTTPRequest,
+        kind: String
+    ) throws -> [String: Any] {
+        var body = try #require(
+            JSONSerialization.jsonObject(with: request.body) as? [String: Any]
+        )
+        body["id"] = request.url.lastPathComponent
+        body["diary_id"] = "diary-1"
+        body["created_at"] = "2026-10-14T00:00:00Z"
+        body["updated_at"] = "2026-10-14T00:01:40Z"
+        if kind == "topic", body["default_template_id"] == nil {
+            body["default_template_id"] = NSNull()
+        }
+        return body
+    }
+
+    private func pageToken(_ request: ThingsDiaryHTTPRequest) -> String? {
+        URLComponents(url: request.url, resolvingAgainstBaseURL: false)?
+            .queryItems?
+            .first(where: { $0.name == "next_page_token" })?
+            .value
+    }
+
+    private func response(_ status: Int, _ object: Any) -> ThingsDiaryHTTPResponse {
+        ThingsDiaryHTTPResponse(
+            statusCode: status,
+            body: try! JSONSerialization.data(withJSONObject: object)
+        )
+    }
+
+    private static func topicFixture(id: String, diaryKey: Data) throws -> [String: Any] {
+        try fixture(
+            id: id,
+            diaryKey: diaryKey,
+            details: [
+                "title": "Private topic",
+                "description": "Decrypted description",
+                "color": "#336699",
+            ],
+            extra: ["default_template_id": "template-1"]
+        )
+    }
+
+    private static func templateFixture(id: String, diaryKey: Data) throws -> [String: Any] {
+        try fixture(
+            id: id,
+            diaryKey: diaryKey,
+            details: ["content": "# Private template"],
+            extra: [:]
+        )
+    }
+
+    private static func fixture(
+        id: String,
+        diaryKey: Data,
+        details: [String: Any],
+        extra: [String: Any]
+    ) throws -> [String: Any] {
+        let entityKey = Data(repeating: 9, count: 32)
+        let encryptedKey = try ThingsDiaryCrypto.encrypt(
+            entityKey,
+            key: diaryKey,
+            nonce: Data(repeating: 10, count: 12)
+        )
+        let encryptedDetails = try ThingsDiaryCrypto.encrypt(
+            JSONSerialization.data(withJSONObject: details),
+            key: entityKey,
+            nonce: Data(repeating: 11, count: 12)
+        )
+        var result: [String: Any] = [
+            "id": id,
+            "diary_id": "diary-1",
+            "version": 1_791_970_000_000 as UInt64,
+            "created_at": "2026-10-14T00:00:00Z",
+            "updated_at": "2026-10-14T00:01:40Z",
+            "encryption": [
+                "diary_key_id": "key-1",
+                "encrypted_key_nonce": encryptedKey.nonce.base64EncodedString(),
+                "encrypted_key_data": encryptedKey.ciphertext.base64EncodedString(),
+            ],
+            "details": [
+                "nonce": encryptedDetails.nonce.base64EncodedString(),
+                "data": encryptedDetails.ciphertext.base64EncodedString(),
+            ],
+        ]
+        result.merge(extra) { _, new in new }
+        return result
     }
 }
