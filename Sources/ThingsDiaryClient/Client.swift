@@ -99,6 +99,19 @@ public actor ThingsDiaryClient {
         )
     }
 
+    public func allDiaries() async throws -> [ThingsDiaryDiary] {
+        var result: [ThingsDiaryDiary] = []
+        var nextPageToken: String?
+
+        repeat {
+            let page = try await diaries(nextPageToken: nextPageToken)
+            result.append(contentsOf: page.items)
+            nextPageToken = page.nextPageToken
+        } while nextPageToken != nil
+
+        return result
+    }
+
     private func post<Request: Encodable, Response: Decodable & Sendable>(
         path: [String],
         body: Request

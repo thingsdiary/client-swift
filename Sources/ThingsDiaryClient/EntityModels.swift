@@ -1,5 +1,33 @@
 import Foundation
 
+public struct ThingsDiaryEntryParams: Codable, Sendable, Equatable {
+    public let content: String
+    public let topicID: String?
+    public let archived: Bool
+    public let bookmarked: Bool
+    public let previewHidden: Bool
+
+    public init(
+        content: String,
+        topicID: String? = nil,
+        archived: Bool = false,
+        bookmarked: Bool = false,
+        previewHidden: Bool = false
+    ) {
+        self.content = content
+        self.topicID = topicID
+        self.archived = archived
+        self.bookmarked = bookmarked
+        self.previewHidden = previewHidden
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case content, archived, bookmarked
+        case topicID = "topic_id"
+        case previewHidden = "preview_hidden"
+    }
+}
+
 /// Encrypted entity details in the zero-knowledge API envelope.
 public struct ThingsDiaryEncryptedPayload: Codable, Sendable, Equatable {
     public let nonce: Data
@@ -30,7 +58,47 @@ public struct ThingsDiaryEntityEncryption: Codable, Sendable, Equatable {
     }
 }
 
-public struct ThingsDiaryEntry: Codable, Sendable, Equatable, Identifiable {
+public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
+    public let id: String
+    public let diaryID: String
+    public let content: String
+    public let topicID: String?
+    public let archived: Bool
+    public let bookmarked: Bool
+    public let previewHidden: Bool
+    public let createdAt: Date
+    public let updatedAt: Date
+    public let deletedAt: Date?
+    public let version: UInt64
+
+    public init(
+        id: String,
+        diaryID: String,
+        content: String,
+        topicID: String? = nil,
+        archived: Bool = false,
+        bookmarked: Bool = false,
+        previewHidden: Bool = false,
+        createdAt: Date,
+        updatedAt: Date,
+        deletedAt: Date? = nil,
+        version: UInt64
+    ) {
+        self.id = id
+        self.diaryID = diaryID
+        self.content = content
+        self.topicID = topicID
+        self.archived = archived
+        self.bookmarked = bookmarked
+        self.previewHidden = previewHidden
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        self.version = version
+    }
+}
+
+struct WireEntry: Codable, Sendable, Equatable {
     public let id: String
     public let diaryID: String
     public let version: UInt64
@@ -41,7 +109,7 @@ public struct ThingsDiaryEntry: Codable, Sendable, Equatable, Identifiable {
     public let encryption: ThingsDiaryEntityEncryption
     public let details: ThingsDiaryEncryptedPayload
 
-    public init(
+    init(
         id: String,
         diaryID: String,
         version: UInt64,

@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 extension ThingsDiaryClient {
@@ -5,6 +6,68 @@ extension ThingsDiaryClient {
         diaryID: String,
         nextPageToken: String? = nil
     ) async throws -> ThingsDiaryPage<ThingsDiaryEntry> {
+        let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
+        let page = try await encryptedEntries(
+            diaryID: diaryID,
+            nextPageToken: nextPageToken
+        )
+        return ThingsDiaryPage(
+            items: try page.items.map { try decrypt($0, diaryKeys: diaryKeys) },
+            nextPageToken: page.nextPageToken
+        )
+    }
+
+    public func allEntries(diaryID: String) async throws -> [ThingsDiaryEntry] {
+        var result: [ThingsDiaryEntry] = []
+        var nextPageToken: String?
+
+        repeat {
+            let page = try await entries(
+                diaryID: diaryID,
+                nextPageToken: nextPageToken
+            )
+            result.append(contentsOf: page.items)
+            nextPageToken = page.nextPageToken
+        } while nextPageToken != nil
+
+        return result
+    }
+
+    public func createEntry(
+        diaryID: String,
+        entryID: String = UUID().uuidString.lowercased(),
+        params: ThingsDiaryEntryParams
+    ) async throws -> ThingsDiaryEntry {
+        let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
+        let version = UInt64(Date().timeIntervalSince1970 * 1_000)
+        return try await putPlaintextEntry(
+            diaryID: diaryID,
+            entryID: entryID,
+            version: version,
+            params: params,
+            diaryKeys: diaryKeys
+        )
+    }
+
+    public func updateEntry(
+        _ entry: ThingsDiaryEntry,
+        params: ThingsDiaryEntryParams
+    ) async throws -> ThingsDiaryEntry {
+        let diaryKeys = try await getDiaryKeys(diaryID: entry.diaryID)
+        let currentVersion = UInt64(Date().timeIntervalSince1970 * 1_000)
+        return try await putPlaintextEntry(
+            diaryID: entry.diaryID,
+            entryID: entry.id,
+            version: max(currentVersion, entry.version + 1),
+            params: params,
+            diaryKeys: diaryKeys
+        )
+    }
+
+    func encryptedEntries(
+        diaryID: String,
+        nextPageToken: String? = nil
+    ) async throws -> ThingsDiaryPage<WireEntry> {
         var query: [URLQueryItem] = []
         if let nextPageToken {
             query.append(URLQueryItem(name: "next_page_token", value: nextPageToken))
@@ -18,6 +81,14 @@ extension ThingsDiaryClient {
     }
 
     public func getEntry(diaryID: String, entryID: String) async throws -> ThingsDiaryEntry {
+        let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
+        return try decrypt(
+            try await encryptedEntry(diaryID: diaryID, entryID: entryID),
+            diaryKeys: diaryKeys
+        )
+    }
+
+    func encryptedEntry(diaryID: String, entryID: String) async throws -> WireEntry {
         let response: EntryResponse = try await sendEntityRequest(
             path: ["v1", "diaries", diaryID, "entries", entryID],
             method: "GET"
@@ -25,7 +96,7 @@ extension ThingsDiaryClient {
         return response.entry
     }
 
-    public func putEntry(
+    func putEncryptedEntry(
         diaryID: String,
         entryID: String,
         version: UInt64,
@@ -33,7 +104,7 @@ extension ThingsDiaryClient {
         encryption: ThingsDiaryEntityEncryption,
         details: ThingsDiaryEncryptedPayload,
         preview: ThingsDiaryEncryptedPayload
-    ) async throws -> ThingsDiaryEntry {
+    ) async throws -> WireEntry {
         let body = try JSONEncoder().encode(PutEntryBody(
             version: version,
             topicID: topicID,
@@ -48,6 +119,51 @@ extension ThingsDiaryClient {
             signed: true
         )
         return response.entry
+    }
+
+    func putPlaintextEntry(
+        diaryID: String,
+        entryID: String,
+        version: UInt64,
+        params: ThingsDiaryEntryParams,
+        diaryKeys: [ThingsDiaryEncryptionKey]
+    ) async throws -> ThingsDiaryEntry {
+        guard let activeKey = diaryKeys.first(where: { $0.status == .active }) else {
+            throw ThingsDiaryClientError.missingActiveEncryptionKey
+        }
+        let entityKey = randomEntryKey()
+        let plaintext = try JSONEncoder().encode(EntryDetailsRequest(
+            content: params.content,
+            archived: params.archived,
+            bookmarked: params.bookmarked,
+            previewHidden: params.previewHidden
+        ))
+        let details = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
+        let preview = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
+        let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(
+            entityKey,
+            key: activeKey.value
+        )
+        let wireEntry = try await putEncryptedEntry(
+            diaryID: diaryID,
+            entryID: entryID,
+            version: version,
+            topicID: params.topicID,
+            encryption: ThingsDiaryEntityEncryption(
+                diaryKeyID: activeKey.id,
+                encryptedKeyNonce: encryptedEntityKey.nonce,
+                encryptedKeyData: encryptedEntityKey.ciphertext
+            ),
+            details: ThingsDiaryEncryptedPayload(
+                nonce: details.nonce,
+                data: details.ciphertext
+            ),
+            preview: ThingsDiaryEncryptedPayload(
+                nonce: preview.nonce,
+                data: preview.ciphertext
+            )
+        )
+        return try decrypt(wireEntry, diaryKeys: diaryKeys)
     }
 
     public func deleteEntry(
@@ -67,11 +183,47 @@ extension ThingsDiaryClient {
     }
 
     public func restoreEntry(diaryID: String, entryID: String) async throws -> ThingsDiaryEntry {
+        let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
         let response: EntryResponse = try await sendEntityRequest(
             path: ["v1", "diaries", diaryID, "entries", entryID, "restore"],
             method: "POST"
         )
-        return response.entry
+        return try decrypt(response.entry, diaryKeys: diaryKeys)
+    }
+
+    func decrypt(
+        _ entry: WireEntry,
+        diaryKeys: [ThingsDiaryEncryptionKey]
+    ) throws -> ThingsDiaryEntry {
+        guard let diaryKey = diaryKeys.first(where: {
+            $0.id == entry.encryption.diaryKeyID
+        }) else {
+            throw ThingsDiaryClientError.missingActiveEncryptionKey
+        }
+        let entityKey = try ThingsDiaryCrypto.decrypt(
+            entry.encryption.encryptedKeyData,
+            key: diaryKey.value,
+            nonce: entry.encryption.encryptedKeyNonce
+        )
+        let detailsData = try ThingsDiaryCrypto.decrypt(
+            entry.details.data,
+            key: entityKey,
+            nonce: entry.details.nonce
+        )
+        let details = try JSONDecoder().decode(EntryDetails.self, from: detailsData)
+        return ThingsDiaryEntry(
+            id: entry.id,
+            diaryID: entry.diaryID,
+            content: details.content,
+            topicID: entry.topicID,
+            archived: details.archived,
+            bookmarked: details.bookmarked,
+            previewHidden: details.previewHidden,
+            createdAt: entry.createdAt,
+            updatedAt: entry.updatedAt,
+            deletedAt: entry.deletedAt,
+            version: entry.version
+        )
     }
 
     func sendEntityRequest<Response: Decodable>(
@@ -148,15 +300,44 @@ private struct PutEntryBody: Encodable {
 }
 
 private struct EntryResponse: Decodable {
-    let entry: ThingsDiaryEntry
+    let entry: WireEntry
 }
 
 private struct EntriesResponse: Decodable {
-    let entries: [ThingsDiaryEntry]
+    let entries: [WireEntry]
     let nextPageToken: String?
 
     enum CodingKeys: String, CodingKey {
         case entries
         case nextPageToken = "next_page_token"
     }
+}
+
+private struct EntryDetails: Decodable {
+    let content: String
+    let archived: Bool
+    let bookmarked: Bool
+    let previewHidden: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case content, archived, bookmarked
+        case previewHidden = "preview_hidden"
+    }
+}
+
+private struct EntryDetailsRequest: Encodable {
+    let content: String
+    let archived: Bool
+    let bookmarked: Bool
+    let previewHidden: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case content, archived, bookmarked
+        case previewHidden = "preview_hidden"
+    }
+}
+
+private func randomEntryKey() -> Data {
+    let key = SymmetricKey(size: .bits256)
+    return key.withUnsafeBytes { Data($0) }
 }
