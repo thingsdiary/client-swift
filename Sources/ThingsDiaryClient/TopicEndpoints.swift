@@ -130,7 +130,8 @@ extension ThingsDiaryClient {
         let plaintext = try JSONEncoder().encode(TopicDetailsRequest(
             title: params.title,
             description: params.description,
-            color: params.color
+            color: params.color,
+            entryPreviewable: params.entryPreviewable
         ))
         let encryptedDetails = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
         let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: activeKey.value)
@@ -203,8 +204,9 @@ extension ThingsDiaryClient {
             id: topic.id,
             diaryID: topic.diaryID,
             title: details.title,
-            description: details.description,
+            description: details.description ?? "",
             color: details.color,
+            entryPreviewable: details.entryPreviewable ?? true,
             defaultTemplateID: topic.defaultTemplateID,
             createdAt: topic.createdAt,
             updatedAt: topic.updatedAt,
@@ -240,14 +242,26 @@ private struct TopicsResponse: Decodable {
 
 private struct TopicDetails: Decodable {
     let title: String
-    let description: String
+    let description: String?
     let color: String
+    let entryPreviewable: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case title, description, color
+        case entryPreviewable = "entry_previewable"
+    }
 }
 
 private struct TopicDetailsRequest: Encodable {
     let title: String
     let description: String
     let color: String
+    let entryPreviewable: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case title, description, color
+        case entryPreviewable = "entry_previewable"
+    }
 }
 
 private func randomEntryKey() -> Data {

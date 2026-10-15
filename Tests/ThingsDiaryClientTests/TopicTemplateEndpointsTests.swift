@@ -12,6 +12,8 @@ func topicsUsePlaintextContract() async throws {
     #expect(topics[0].title == "Private topic")
     #expect(topics[0].description == "Decrypted description")
     #expect(topics[0].color == "#336699")
+    #expect(topics[0].entryPreviewable)
+    #expect(topics[1].description.isEmpty)
 
     let created = try await client.createTopic(
         diaryID: "diary-1",
@@ -20,11 +22,13 @@ func topicsUsePlaintextContract() async throws {
             title: "New topic",
             description: "Created in Swift",
             color: "#123456",
+            entryPreviewable: false,
             defaultTemplateID: "template-1"
         )
     )
     #expect(created.id == "topic-new")
     #expect(created.title == "New topic")
+    #expect(!created.entryPreviewable)
     #expect(created.defaultTemplateID == "template-1")
     let createRequest = try #require(transport.lastRequest(method: "PUT"))
     try await expectValidSignature(createRequest, client: client)
@@ -242,14 +246,18 @@ private final class TopicTemplateTransport: ThingsDiaryTransport, @unchecked Sen
     }
 
     private static func topicFixture(id: String, diaryKey: Data) throws -> [String: Any] {
-        try fixture(
+        var details: [String: Any] = [
+            "title": "Private topic",
+            "color": "#336699",
+            "entry_previewable": true,
+        ]
+        if id == "topic-1" {
+            details["description"] = "Decrypted description"
+        }
+        return try fixture(
             id: id,
             diaryKey: diaryKey,
-            details: [
-                "title": "Private topic",
-                "description": "Decrypted description",
-                "color": "#336699",
-            ],
+            details: details,
             extra: ["default_template_id": "template-1"]
         )
     }

@@ -145,17 +145,20 @@ public struct ThingsDiaryTopicParams: Sendable, Equatable {
     public let title: String
     public let description: String
     public let color: String
+    public let entryPreviewable: Bool
     public let defaultTemplateID: String?
 
     public init(
         title: String,
         description: String,
         color: String,
+        entryPreviewable: Bool = true,
         defaultTemplateID: String? = nil
     ) {
         self.title = title
         self.description = description
         self.color = color
+        self.entryPreviewable = entryPreviewable
         self.defaultTemplateID = defaultTemplateID
     }
 }
@@ -166,6 +169,7 @@ public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
     public let title: String
     public let description: String
     public let color: String
+    public let entryPreviewable: Bool
     public let defaultTemplateID: String?
     public let createdAt: Date
     public let updatedAt: Date
@@ -178,6 +182,7 @@ public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
         title: String,
         description: String,
         color: String,
+        entryPreviewable: Bool = true,
         defaultTemplateID: String? = nil,
         createdAt: Date,
         updatedAt: Date,
@@ -189,6 +194,7 @@ public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
         self.title = title
         self.description = description
         self.color = color
+        self.entryPreviewable = entryPreviewable
         self.defaultTemplateID = defaultTemplateID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
