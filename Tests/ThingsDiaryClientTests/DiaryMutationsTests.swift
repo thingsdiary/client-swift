@@ -148,6 +148,57 @@ func putDiarySendsSignedEnvelopeAndVersion() async throws {
     #expect(decodedDetails == ["title": "Changed title", "description": "Changed description"])
 }
 
+@Test("updateDiary advances the version and sends the edited plaintext details")
+func updateDiaryAdvancesVersionAndSendsEditedDetails() async throws {
+    let transport = DiaryMutationTransport()
+    let client = try await diaryAPIClient(transport: transport)
+    let auth = try #require(await client.authentication)
+    let activeDiaryKey = Data(repeating: 0x42, count: 32)
+    transport.keysBody = Data(#"{"keys":[{"id":"active-key","value":"\#(try ThingsDiaryCrypto.seal(activeDiaryKey, recipientPublicKey: auth.credentials.encryptionPublicKey).base64EncodedString())","status":"active"}]}"#.utf8)
+    transport.mutationStatusCode = 409
+    let diary = ThingsDiaryDiary(
+        id: "diary-1",
+        title: "Old title",
+        description: "Old description",
+        createdAt: .distantPast,
+        updatedAt: .distantPast,
+        version: 4_000_000_000_000
+    )
+
+    do {
+        _ = try await client.updateDiary(
+            diary,
+            params: ThingsDiaryDiaryParams(
+                title: "Changed title",
+                description: "Changed description"
+            )
+        )
+        Issue.record("Expected the fixture transport's HTTP error")
+    } catch let error as ThingsDiaryClientError {
+        #expect(error == .httpStatus(409, body: Data("fixture response".utf8)))
+    }
+
+    let request = try #require(transport.lastMutationRequest)
+    #expect(request.url.path == "/api/v1/diaries/diary-1")
+    #expect(request.method == "PUT")
+    let body = try #require(JSONSerialization.jsonObject(with: request.body) as? [String: Any])
+    #expect(body["version"] as? Int == 4_000_000_000_001)
+    let encryption = try #require(body["encryption"] as? [String: String])
+    let entityKey = try ThingsDiaryCrypto.decrypt(
+        try requiredBase64(encryption["encrypted_key_data"]),
+        key: activeDiaryKey,
+        nonce: try requiredBase64(encryption["encrypted_key_nonce"])
+    )
+    let details = try #require(body["details"] as? [String: String])
+    let plaintext = try ThingsDiaryCrypto.decrypt(
+        try requiredBase64(details["data"]),
+        key: entityKey,
+        nonce: try requiredBase64(details["nonce"])
+    )
+    let decodedDetails = try #require(JSONSerialization.jsonObject(with: plaintext) as? [String: String])
+    #expect(decodedDetails == ["title": "Changed title", "description": "Changed description"])
+}
+
 @Test("deleteDiary sends DELETE to the diary path with bearer authentication")
 func deleteDiarySendsAuthenticatedDelete() async throws {
     let transport = DiaryMutationTransport()

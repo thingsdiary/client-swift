@@ -10,6 +10,16 @@ public struct ThingsDiaryCreateParams: Sendable, Equatable {
     }
 }
 
+public struct ThingsDiaryDiaryParams: Sendable, Equatable {
+    public let title: String
+    public let description: String
+
+    public init(title: String, description: String) {
+        self.title = title
+        self.description = description
+    }
+}
+
 public struct ThingsDiaryPutParams: Sendable, Equatable {
     public let title: String
     public let description: String

@@ -85,6 +85,21 @@ extension ThingsDiaryClient {
         try await putDiary(id: id, params: params)
     }
 
+    public func updateDiary(
+        _ diary: ThingsDiaryDiary,
+        params: ThingsDiaryDiaryParams
+    ) async throws -> ThingsDiaryDiary {
+        let currentVersion = UInt64(Date().timeIntervalSince1970 * 1_000)
+        return try await putDiary(
+            id: diary.id,
+            params: ThingsDiaryPutParams(
+                title: params.title,
+                description: params.description,
+                version: max(currentVersion, diary.version + 1)
+            )
+        )
+    }
+
     public func deleteDiary(id: String) async throws {
         guard let authentication else { throw ThingsDiaryClientError.notAuthenticated }
         let response = try await transport.send(ThingsDiaryHTTPRequest(
