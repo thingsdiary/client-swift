@@ -68,16 +68,18 @@ extension ThingsDiaryClient {
         diaryID: String,
         nextPageToken: String? = nil
     ) async throws -> ThingsDiaryPage<WireTemplate> {
-        var query: [URLQueryItem] = []
-        if let nextPageToken {
-            query.append(URLQueryItem(name: "next_page_token", value: nextPageToken))
-        }
-        let response: TemplatesResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "templates"],
-            method: "GET",
-            query: query
+        var request = Io_Thingsdiary_V1_ListTemplatesRequest()
+        request.diaryID = diaryID
+        request.page.pageToken = nextPageToken ?? ""
+        let response = try await rpc(
+            "io.thingsdiary.v1.template.list",
+            request: request,
+            response: Io_Thingsdiary_V1_ListTemplatesResponse.self
         )
-        return ThingsDiaryPage(items: response.templates, nextPageToken: response.nextPageToken)
+        return ThingsDiaryPage(
+            items: response.templates.map(\.wire),
+            nextPageToken: response.page.nextPageToken.nilIfEmpty
+        )
     }
 
     public func getTemplate(diaryID: String, templateID: String) async throws -> ThingsDiaryTemplate {
@@ -89,11 +91,15 @@ extension ThingsDiaryClient {
     }
 
     func encryptedTemplate(diaryID: String, templateID: String) async throws -> WireTemplate {
-        let response: TemplateResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "templates", templateID],
-            method: "GET"
+        var request = Io_Thingsdiary_V1_GetTemplateRequest()
+        request.diaryID = diaryID
+        request.templateID = templateID
+        let response = try await rpc(
+            "io.thingsdiary.v1.template.get",
+            request: request,
+            response: Io_Thingsdiary_V1_GetTemplateResponse.self
         )
-        return response.template
+        return response.template.wire
     }
 
     func putEncryptedTemplate(
@@ -103,18 +109,18 @@ extension ThingsDiaryClient {
         encryption: ThingsDiaryEntityEncryption,
         details: ThingsDiaryEncryptedPayload
     ) async throws -> WireTemplate {
-        let body = try JSONEncoder().encode(PutTemplateBody(
-            version: version,
-            encryption: encryption,
-            details: details
-        ))
-        let response: TemplateResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "templates", templateID],
-            method: "PUT",
-            body: body,
-            signed: true
+        var request = Io_Thingsdiary_V1_PutTemplateRequest()
+        request.diaryID = diaryID
+        request.templateID = templateID
+        request.version = version
+        request.encryption = Io_Thingsdiary_V1_Encryption(encryption)
+        request.details = Io_Thingsdiary_V1_EncryptedData(details)
+        let response = try await rpc(
+            "io.thingsdiary.v1.template.put",
+            request: request,
+            response: Io_Thingsdiary_V1_PutTemplateResponse.self
         )
-        return response.template
+        return response.template.wire
     }
 
     func putPlaintextTemplate(
@@ -153,24 +159,28 @@ extension ThingsDiaryClient {
         templateID: String,
         soft: Bool? = nil
     ) async throws {
-        var query: [URLQueryItem] = []
-        if let soft {
-            query.append(URLQueryItem(name: "soft", value: soft ? "true" : "false"))
-        }
-        try await sendEntityNoContent(
-            path: ["v1", "diaries", diaryID, "templates", templateID],
-            method: "DELETE",
-            query: query
+        var request = Io_Thingsdiary_V1_DeleteTemplateRequest()
+        request.diaryID = diaryID
+        request.templateID = templateID
+        if let soft { request.soft = soft }
+        _ = try await rpc(
+            "io.thingsdiary.v1.template.delete",
+            request: request,
+            response: Io_Thingsdiary_V1_DeleteTemplateResponse.self
         )
     }
 
     public func restoreTemplate(diaryID: String, templateID: String) async throws -> ThingsDiaryTemplate {
         let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
-        let response: TemplateResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "templates", templateID, "restore"],
-            method: "POST"
+        var request = Io_Thingsdiary_V1_RestoreTemplateRequest()
+        request.diaryID = diaryID
+        request.templateID = templateID
+        let response = try await rpc(
+            "io.thingsdiary.v1.template.restore",
+            request: request,
+            response: Io_Thingsdiary_V1_RestoreTemplateResponse.self
         )
-        return try decrypt(response.template, diaryKeys: diaryKeys)
+        return try decrypt(response.template.wire, diaryKeys: diaryKeys)
     }
 
     func decrypt(
@@ -202,26 +212,6 @@ extension ThingsDiaryClient {
             deletedAt: template.deletedAt,
             version: template.version
         )
-    }
-}
-
-private struct PutTemplateBody: Encodable {
-    let version: UInt64
-    let encryption: ThingsDiaryEntityEncryption
-    let details: ThingsDiaryEncryptedPayload
-}
-
-private struct TemplateResponse: Decodable {
-    let template: WireTemplate
-}
-
-private struct TemplatesResponse: Decodable {
-    let templates: [WireTemplate]
-    let nextPageToken: String?
-
-    enum CodingKeys: String, CodingKey {
-        case templates
-        case nextPageToken = "next_page_token"
     }
 }
 

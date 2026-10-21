@@ -15,14 +15,20 @@ public actor ThingsDiaryClient {
 
     let baseURL: URL
     let transport: any ThingsDiaryTransport
+    let realtimeTransport: any ThingsDiaryRealtimeTransport
     var authentication: ThingsDiaryAuthState?
 
     public init(
         baseURL: URL = productionURL,
-        transport: any ThingsDiaryTransport = URLSessionTransport()
+        realtimeURL: URL? = nil,
+        transport: any ThingsDiaryTransport = URLSessionTransport(),
+        realtimeTransport: (any ThingsDiaryRealtimeTransport)? = nil
     ) {
         self.baseURL = baseURL
         self.transport = transport
+        self.realtimeTransport = realtimeTransport ?? CentrifugeRealtimeTransport(
+            endpoint: realtimeURL ?? Self.realtimeURL(from: baseURL)
+        )
     }
 
     @discardableResult
@@ -69,33 +75,19 @@ public actor ThingsDiaryClient {
             throw ThingsDiaryClientError.notAuthenticated
         }
 
-        var requestURL = url(["v1", "diaries"])
-        if let nextPageToken {
-            requestURL.append(queryItems: [
-                URLQueryItem(name: "next_page_token", value: nextPageToken),
-            ])
-        }
-        let request = ThingsDiaryHTTPRequest(
-            url: requestURL,
-            method: "GET",
-            headers: ["Authorization": "Bearer \(authentication.token)"]
+        var request = Io_Thingsdiary_V1_ListDiariesRequest()
+        request.page.pageToken = nextPageToken ?? ""
+        let response = try await rpc(
+            "io.thingsdiary.v1.diary.list",
+            request: request,
+            response: Io_Thingsdiary_V1_ListDiariesResponse.self
         )
-        let response = try await transport.send(request)
-        guard response.statusCode == 200 else {
-            throw ThingsDiaryClientError.httpStatus(
-                response.statusCode,
-                body: response.body
-            )
-        }
-
-        let decoder = JSONDecoder.thingsDiary()
-        let wirePage = try decoder.decode(DiariesResponse.self, from: response.body)
-        let diaries = try wirePage.diaries.map {
-            try decrypt($0, credentials: authentication.credentials)
+        let diaries = try response.diaries.map {
+            try decrypt($0.wire, credentials: authentication.credentials)
         }
         return ThingsDiaryPage(
             items: diaries,
-            nextPageToken: wirePage.nextPageToken
+            nextPageToken: response.page.nextPageToken.nilIfEmpty
         )
     }
 
@@ -137,6 +129,15 @@ public actor ThingsDiaryClient {
         path.reduce(baseURL) { url, component in
             url.appendingPathComponent(component)
         }
+    }
+
+    private static func realtimeURL(from baseURL: URL) -> URL {
+        var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
+        components.scheme = baseURL.scheme == "http" ? "ws" : "wss"
+        components.path = "/connection/websocket"
+        components.query = nil
+        components.fragment = nil
+        return components.url!
     }
 
     func decrypt(
@@ -189,6 +190,10 @@ public enum ThingsDiaryClientError: Error, Sendable, Equatable {
     case httpStatus(Int, body: Data)
     case notAuthenticated
     case missingActiveEncryptionKey
+    case realtimeNotConnected
+    case realtimeDisconnected(code: UInt32, reason: String)
+    case realtime(String)
+    case rpc(code: UInt32, message: String)
 }
 
 private struct LoginRequest: Encodable {
@@ -220,16 +225,6 @@ private struct LoginVerifyRequest: Encodable {
 
 private struct LoginVerifyResponse: Decodable, Sendable {
     let token: String
-}
-
-private struct DiariesResponse: Decodable, Sendable {
-    let diaries: [WireDiary]
-    let nextPageToken: String?
-
-    enum CodingKeys: String, CodingKey {
-        case diaries
-        case nextPageToken = "next_page_token"
-    }
 }
 
 struct WireDiary: Decodable, Sendable {
@@ -272,5 +267,9 @@ struct WireEncryptedData: Decodable, Sendable {
 struct DiaryDetails: Decodable, Sendable {
     let title: String
     let description: String
+}
+
+extension String {
+    var nilIfEmpty: String? { isEmpty ? nil : self }
 }
 

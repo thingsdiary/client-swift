@@ -14,30 +14,22 @@ extension ThingsDiaryClient {
             diaryKey,
             recipientPublicKey: authentication.credentials.encryptionPublicKey
         )
-        let body = CreateDiaryWireRequest(
-            encryptedDiaryKey: sealedDiaryKey.base64EncodedString(),
-            encryption: DiaryEncryptionWireRequest(
-                encryptedKeyNonce: encryptedEntityKey.nonce.base64EncodedString(),
-                encryptedKeyData: encryptedEntityKey.ciphertext.base64EncodedString()
-            ),
-            details: WireEncryptedDataRequest(
-                nonce: encryptedDetails.nonce.base64EncodedString(),
-                data: encryptedDetails.ciphertext.base64EncodedString()
+        var request = Io_Thingsdiary_V1_CreateDiaryRequest()
+        request.encryptedDiaryKey = sealedDiaryKey
+        request.encryptedKeyNonce = encryptedEntityKey.nonce
+        request.encryptedKeyData = encryptedEntityKey.ciphertext
+        request.details = Io_Thingsdiary_V1_EncryptedData(
+            ThingsDiaryEncryptedPayload(
+                nonce: encryptedDetails.nonce,
+                data: encryptedDetails.ciphertext
             )
         )
-        let encodedBody = try JSONEncoder().encode(body)
-        let response = try await transport.send(ThingsDiaryHTTPRequest(
-            url: url(["v1", "diaries"]),
-            method: "POST",
-            headers: signedHeaders(encodedBody, authentication: authentication),
-            body: encodedBody
-        ))
-        guard response.statusCode == 201 else {
-            throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
-        }
-        let decoder = JSONDecoder.thingsDiary()
-        let diary = try decoder.decode(DiaryMutationResponse.self, from: response.body).diary
-        return try decrypt(diary, credentials: authentication.credentials)
+        let response = try await rpc(
+            "io.thingsdiary.v1.diary.create",
+            request: request,
+            response: Io_Thingsdiary_V1_CreateDiaryResponse.self
+        )
+        return try decrypt(response.diary.wire, credentials: authentication.credentials)
     }
 
     public func createDiary(title: String, description: String) async throws -> ThingsDiaryDiary {
@@ -54,31 +46,28 @@ extension ThingsDiaryClient {
         let details = try encodeDetails(title: params.title, description: params.description)
         let encryptedDetails = try ThingsDiaryCrypto.encrypt(details, key: entityKey)
         let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: activeKey.value)
-        let body = PutDiaryWireRequest(
-            details: WireEncryptedDataRequest(
-                nonce: encryptedDetails.nonce.base64EncodedString(),
-                data: encryptedDetails.ciphertext.base64EncodedString()
-            ),
-            encryption: PutDiaryEncryptionWireRequest(
+        var request = Io_Thingsdiary_V1_PutDiaryRequest()
+        request.diaryID = id
+        request.version = params.version
+        request.encryption = Io_Thingsdiary_V1_Encryption(
+            ThingsDiaryEntityEncryption(
                 diaryKeyID: activeKey.id,
-                encryptedKeyNonce: encryptedEntityKey.nonce.base64EncodedString(),
-                encryptedKeyData: encryptedEntityKey.ciphertext.base64EncodedString()
-            ),
-            version: params.version
+                encryptedKeyNonce: encryptedEntityKey.nonce,
+                encryptedKeyData: encryptedEntityKey.ciphertext
+            )
         )
-        let encodedBody = try JSONEncoder().encode(body)
-        let response = try await transport.send(ThingsDiaryHTTPRequest(
-            url: url(["v1", "diaries", id]),
-            method: "PUT",
-            headers: signedHeaders(encodedBody, authentication: authentication),
-            body: encodedBody
-        ))
-        guard response.statusCode == 200 else {
-            throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
-        }
-        let decoder = JSONDecoder.thingsDiary()
-        let diary = try decoder.decode(DiaryMutationResponse.self, from: response.body).diary
-        return try decrypt(diary, credentials: authentication.credentials)
+        request.details = Io_Thingsdiary_V1_EncryptedData(
+            ThingsDiaryEncryptedPayload(
+                nonce: encryptedDetails.nonce,
+                data: encryptedDetails.ciphertext
+            )
+        )
+        let response = try await rpc(
+            "io.thingsdiary.v1.diary.put",
+            request: request,
+            response: Io_Thingsdiary_V1_PutDiaryResponse.self
+        )
+        return try decrypt(response.diary.wire, credentials: authentication.credentials)
     }
 
     public func updateDiary(id: String, params: ThingsDiaryPutParams) async throws -> ThingsDiaryDiary {
@@ -101,38 +90,37 @@ extension ThingsDiaryClient {
     }
 
     public func deleteDiary(id: String) async throws {
-        guard let authentication else { throw ThingsDiaryClientError.notAuthenticated }
-        let response = try await transport.send(ThingsDiaryHTTPRequest(
-            url: url(["v1", "diaries", id]),
-            method: "DELETE",
-            headers: ["Authorization": "Bearer \(authentication.token)"]
-        ))
-        guard response.statusCode == 204 else {
-            throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
-        }
+        var request = Io_Thingsdiary_V1_DeleteDiaryRequest()
+        request.diaryID = id
+        _ = try await rpc(
+            "io.thingsdiary.v1.diary.delete",
+            request: request,
+            response: Io_Thingsdiary_V1_DeleteDiaryResponse.self
+        )
     }
 
     public func getDiaryKeys(diaryID: String) async throws -> [ThingsDiaryEncryptionKey] {
         guard let authentication else { throw ThingsDiaryClientError.notAuthenticated }
-        let response = try await transport.send(ThingsDiaryHTTPRequest(
-            url: url(["v1", "diaries", diaryID, "keys"]),
-            method: "GET",
-            headers: ["Authorization": "Bearer \(authentication.token)"]
-        ))
-        guard response.statusCode == 200 else {
-            throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
-        }
-        let wireResponse = try JSONDecoder().decode(DiaryKeysResponse.self, from: response.body)
-        return try wireResponse.keys.map { key in
-            guard let sealedKey = Data(base64Encoded: key.value) else {
-                throw ThingsDiaryClientError.invalidBase64
-            }
+        var request = Io_Thingsdiary_V1_ListDiaryKeysRequest()
+        request.diaryID = diaryID
+        let response = try await rpc(
+            "io.thingsdiary.v1.diary_key.list",
+            request: request,
+            response: Io_Thingsdiary_V1_ListDiaryKeysResponse.self
+        )
+        return try response.keys.map { key in
             let openedKey = try ThingsDiaryCrypto.openSealedBox(
-                sealedKey,
+                key.value,
                 recipientPrivateKey: authentication.credentials.encryptionPrivateKey,
                 recipientPublicKey: authentication.credentials.encryptionPublicKey
             )
-            return ThingsDiaryEncryptionKey(id: key.id, value: openedKey, status: key.status)
+            let status: ThingsDiaryEncryptionKeyStatus
+            switch key.status {
+            case .active: status = .active
+            case .rotated: status = .rotated
+            default: status = .rotating
+            }
+            return ThingsDiaryEncryptionKey(id: key.id, value: openedKey, status: status)
         }
     }
 
@@ -174,80 +162,11 @@ extension ThingsDiaryClient {
         try JSONEncoder().encode(DiaryDetailsRequest(title: title, description: description))
     }
 
-    private func signedHeaders(
-        _ body: Data,
-        authentication: ThingsDiaryAuthState
-    ) throws -> [String: String] {
-        let signature = try ThingsDiaryCrypto.sign(body, privateKey: authentication.credentials.signingPrivateKey)
-        return [
-            "Authorization": "Bearer \(authentication.token)",
-            "Content-Type": "application/json",
-            "X-Signature": signature.base64EncodedString(),
-        ]
-    }
-}
-
-private struct WireEncryptedDataRequest: Encodable {
-    let nonce: String
-    let data: String
-}
-
-private struct DiaryEncryptionWireRequest: Encodable {
-    let encryptedKeyNonce: String
-    let encryptedKeyData: String
-
-    enum CodingKeys: String, CodingKey {
-        case encryptedKeyNonce = "encrypted_key_nonce"
-        case encryptedKeyData = "encrypted_key_data"
-    }
-}
-
-private struct CreateDiaryWireRequest: Encodable {
-    let encryptedDiaryKey: String
-    let encryption: DiaryEncryptionWireRequest
-    let details: WireEncryptedDataRequest
-
-    enum CodingKeys: String, CodingKey {
-        case encryptedDiaryKey = "encrypted_diary_key"
-        case encryption, details
-    }
-}
-
-private struct PutDiaryEncryptionWireRequest: Encodable {
-    let diaryKeyID: String
-    let encryptedKeyNonce: String
-    let encryptedKeyData: String
-
-    enum CodingKeys: String, CodingKey {
-        case diaryKeyID = "diary_key_id"
-        case encryptedKeyNonce = "encrypted_key_nonce"
-        case encryptedKeyData = "encrypted_key_data"
-    }
-}
-
-private struct PutDiaryWireRequest: Encodable {
-    let details: WireEncryptedDataRequest
-    let encryption: PutDiaryEncryptionWireRequest
-    let version: UInt64
 }
 
 private struct DiaryDetailsRequest: Encodable {
     let title: String
     let description: String
-}
-
-private struct DiaryMutationResponse: Decodable {
-    let diary: WireDiary
-}
-
-private struct DiaryKeysResponse: Decodable {
-    let keys: [DiaryKeyResponse]
-}
-
-private struct DiaryKeyResponse: Decodable {
-    let id: String
-    let value: String
-    let status: ThingsDiaryEncryptionKeyStatus
 }
 
 private struct DiaryChangesResponse: Decodable {

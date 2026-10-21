@@ -68,16 +68,18 @@ extension ThingsDiaryClient {
         diaryID: String,
         nextPageToken: String? = nil
     ) async throws -> ThingsDiaryPage<WireEntry> {
-        var query: [URLQueryItem] = []
-        if let nextPageToken {
-            query.append(URLQueryItem(name: "next_page_token", value: nextPageToken))
-        }
-        let response: EntriesResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "entries"],
-            method: "GET",
-            query: query
+        var request = Io_Thingsdiary_V1_ListEntriesRequest()
+        request.diaryID = diaryID
+        request.page.pageToken = nextPageToken ?? ""
+        let response = try await rpc(
+            "io.thingsdiary.v1.entry.list",
+            request: request,
+            response: Io_Thingsdiary_V1_ListEntriesResponse.self
         )
-        return ThingsDiaryPage(items: response.entries, nextPageToken: response.nextPageToken)
+        return ThingsDiaryPage(
+            items: response.entries.map(\.wire),
+            nextPageToken: response.page.nextPageToken.nilIfEmpty
+        )
     }
 
     public func getEntry(diaryID: String, entryID: String) async throws -> ThingsDiaryEntry {
@@ -89,11 +91,15 @@ extension ThingsDiaryClient {
     }
 
     func encryptedEntry(diaryID: String, entryID: String) async throws -> WireEntry {
-        let response: EntryResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "entries", entryID],
-            method: "GET"
+        var request = Io_Thingsdiary_V1_GetEntryRequest()
+        request.diaryID = diaryID
+        request.entryID = entryID
+        let response = try await rpc(
+            "io.thingsdiary.v1.entry.get",
+            request: request,
+            response: Io_Thingsdiary_V1_GetEntryResponse.self
         )
-        return response.entry
+        return response.entry.wire
     }
 
     func putEncryptedEntry(
@@ -105,20 +111,20 @@ extension ThingsDiaryClient {
         details: ThingsDiaryEncryptedPayload,
         preview: ThingsDiaryEncryptedPayload
     ) async throws -> WireEntry {
-        let body = try JSONEncoder().encode(PutEntryBody(
-            version: version,
-            topicID: topicID,
-            encryption: encryption,
-            details: details,
-            preview: preview
-        ))
-        let response: EntryResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "entries", entryID],
-            method: "PUT",
-            body: body,
-            signed: true
+        var request = Io_Thingsdiary_V1_PutEntryRequest()
+        request.diaryID = diaryID
+        request.entryID = entryID
+        request.version = version
+        if let topicID { request.topicID = topicID }
+        request.encryption = Io_Thingsdiary_V1_Encryption(encryption)
+        request.details = Io_Thingsdiary_V1_EncryptedData(details)
+        request.preview = Io_Thingsdiary_V1_EncryptedData(preview)
+        let response = try await rpc(
+            "io.thingsdiary.v1.entry.put",
+            request: request,
+            response: Io_Thingsdiary_V1_PutEntryResponse.self
         )
-        return response.entry
+        return response.entry.wire
     }
 
     func putPlaintextEntry(
@@ -171,24 +177,28 @@ extension ThingsDiaryClient {
         entryID: String,
         soft: Bool? = nil
     ) async throws {
-        var query: [URLQueryItem] = []
-        if let soft {
-            query.append(URLQueryItem(name: "soft", value: soft ? "true" : "false"))
-        }
-        try await sendEntityNoContent(
-            path: ["v1", "diaries", diaryID, "entries", entryID],
-            method: "DELETE",
-            query: query
+        var request = Io_Thingsdiary_V1_DeleteEntryRequest()
+        request.diaryID = diaryID
+        request.entryID = entryID
+        if let soft { request.soft = soft }
+        _ = try await rpc(
+            "io.thingsdiary.v1.entry.delete",
+            request: request,
+            response: Io_Thingsdiary_V1_DeleteEntryResponse.self
         )
     }
 
     public func restoreEntry(diaryID: String, entryID: String) async throws -> ThingsDiaryEntry {
         let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
-        let response: EntryResponse = try await sendEntityRequest(
-            path: ["v1", "diaries", diaryID, "entries", entryID, "restore"],
-            method: "POST"
+        var request = Io_Thingsdiary_V1_RestoreEntryRequest()
+        request.diaryID = diaryID
+        request.entryID = entryID
+        let response = try await rpc(
+            "io.thingsdiary.v1.entry.restore",
+            request: request,
+            response: Io_Thingsdiary_V1_RestoreEntryResponse.self
         )
-        return try decrypt(response.entry, diaryKeys: diaryKeys)
+        return try decrypt(response.entry.wire, diaryKeys: diaryKeys)
     }
 
     func decrypt(
@@ -226,91 +236,6 @@ extension ThingsDiaryClient {
         )
     }
 
-    func sendEntityRequest<Response: Decodable>(
-        path: [String],
-        method: String,
-        query: [URLQueryItem] = [],
-        body: Data? = nil,
-        signed: Bool = false
-    ) async throws -> Response {
-        guard let authentication else {
-            throw ThingsDiaryClientError.notAuthenticated
-        }
-        var requestURL = url(path)
-        if !query.isEmpty {
-            requestURL.append(queryItems: query)
-        }
-        var headers = ["Authorization": "Bearer \(authentication.token)"]
-        if body != nil {
-            headers["Content-Type"] = "application/json"
-        }
-        if signed, let body {
-            headers["X-Signature"] = try ThingsDiaryCrypto.sign(
-                body,
-                privateKey: authentication.credentials.signingPrivateKey
-            ).base64EncodedString()
-        }
-        let response = try await transport.send(ThingsDiaryHTTPRequest(
-            url: requestURL,
-            method: method,
-            headers: headers,
-            body: body ?? Data()
-        ))
-        guard (200..<300).contains(response.statusCode) else {
-            throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
-        }
-        let decoder = JSONDecoder.thingsDiary()
-        return try decoder.decode(Response.self, from: response.body)
-    }
-
-    func sendEntityNoContent(
-        path: [String],
-        method: String,
-        query: [URLQueryItem] = []
-    ) async throws {
-        guard let authentication else {
-            throw ThingsDiaryClientError.notAuthenticated
-        }
-        var requestURL = url(path)
-        if !query.isEmpty {
-            requestURL.append(queryItems: query)
-        }
-        let response = try await transport.send(ThingsDiaryHTTPRequest(
-            url: requestURL,
-            method: method,
-            headers: ["Authorization": "Bearer \(authentication.token)"]
-        ))
-        guard response.statusCode == 204 else {
-            throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
-        }
-    }
-}
-
-private struct PutEntryBody: Encodable {
-    let version: UInt64
-    let topicID: String?
-    let encryption: ThingsDiaryEntityEncryption
-    let details: ThingsDiaryEncryptedPayload
-    let preview: ThingsDiaryEncryptedPayload
-
-    enum CodingKeys: String, CodingKey {
-        case version, encryption, details, preview
-        case topicID = "topic_id"
-    }
-}
-
-private struct EntryResponse: Decodable {
-    let entry: WireEntry
-}
-
-private struct EntriesResponse: Decodable {
-    let entries: [WireEntry]
-    let nextPageToken: String?
-
-    enum CodingKeys: String, CodingKey {
-        case entries
-        case nextPageToken = "next_page_token"
-    }
 }
 
 private struct EntryDetails: Decodable {

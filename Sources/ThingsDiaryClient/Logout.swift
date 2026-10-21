@@ -14,6 +14,7 @@ extension ThingsDiaryClient {
         guard response.statusCode == 204 else {
             throw ThingsDiaryClientError.httpStatus(response.statusCode, body: response.body)
         }
+        await realtimeTransport.disconnect()
         self.authentication = nil
     }
 }

@@ -13,6 +13,14 @@ let package = Package(
     ],
     dependencies: [
         .package(
+            url: "https://github.com/apple/swift-protobuf.git",
+            exact: "1.38.1"
+        ),
+        .package(
+            url: "https://github.com/centrifugal/centrifuge-swift.git",
+            exact: "0.11.0"
+        ),
+        .package(
             url: "https://github.com/jedisct1/swift-sodium.git",
             exact: "0.11.0"
         ),
@@ -22,6 +30,8 @@ let package = Package(
             name: "ThingsDiaryClient",
             dependencies: [
                 .product(name: "Clibsodium", package: "swift-sodium"),
+                .product(name: "SwiftCentrifuge", package: "centrifuge-swift"),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ]
         ),
         .testTarget(

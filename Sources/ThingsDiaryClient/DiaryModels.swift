@@ -35,6 +35,7 @@ public struct ThingsDiaryPutParams: Sendable, Equatable {
 public enum ThingsDiaryEncryptionKeyStatus: String, Sendable, Equatable, Codable {
     case active
     case rotating
+    case rotated
 }
 
 public struct ThingsDiaryEncryptionKey: Sendable, Equatable {
