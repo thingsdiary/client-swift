@@ -33,7 +33,7 @@ public final class CentrifugeRealtimeTransport: NSObject, ThingsDiaryRealtimeTra
       endpoint: endpoint.absoluteString,
       config: CentrifugeClientConfig(
         token: token,
-        useNativeWebSocket: true,
+        useNativeWebSocket: false,
         tokenGetter: { _, completion in
           let completion = TokenCompletion(completion)
           Task {
