@@ -131,13 +131,29 @@ public actor ThingsDiaryClient {
         }
     }
 
-    private static func realtimeURL(from baseURL: URL) -> URL {
+    static func realtimeURL(from baseURL: URL) -> URL {
         var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
         components.scheme = baseURL.scheme == "http" ? "ws" : "wss"
-        components.path = "/connection/websocket"
+        if isLocalhost(baseURL.host) {
+            components.scheme = "ws"
+            components.port = 8000
+            components.path = "/connection/websocket"
+        } else {
+            let basePath = baseURL.path.trimmingCharacters(
+                in: CharacterSet(charactersIn: "/")
+            )
+            components.path = basePath.isEmpty
+                ? "/v1/realtime"
+                : "/\(basePath)/v1/realtime"
+        }
         components.query = nil
         components.fragment = nil
         return components.url!
+    }
+
+    private static func isLocalhost(_ host: String?) -> Bool {
+        guard let host = host?.lowercased() else { return false }
+        return host == "localhost" || host == "127.0.0.1" || host == "::1"
     }
 
     func decrypt(
