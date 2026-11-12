@@ -35,6 +35,7 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedTopic: @unchecked Sendable 
     set {_uniqueStorage()._diaryID = newValue}
   }
 
+  /// NOTE: This field was marked as deprecated in the .proto file.
   public var version: UInt64 {
     get {_storage._version}
     set {_uniqueStorage()._version = newValue}

@@ -27,6 +27,7 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedDiary: Sendable {
 
   public var id: String = String()
 
+  /// NOTE: This field was marked as deprecated in the .proto file.
   public var version: UInt64 = 0
 
   public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
