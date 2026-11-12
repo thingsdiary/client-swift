@@ -185,12 +185,12 @@ public actor ThingsDiaryClient {
       key: entityKey,
       nonce: try decodeBase64(diary.details.nonce)
     )
-    let details = try JSONDecoder().decode(DiaryDetails.self, from: detailsData)
+    let details = try Io_Thingsdiary_V1_DiaryDetails(serializedBytes: detailsData)
 
     return ThingsDiaryDiary(
       id: diary.id,
       title: details.title,
-      description: details.description,
+      description: details.description_p,
       createdAt: diary.createdAt,
       updatedAt: diary.updatedAt,
       version: diary.version
@@ -283,11 +283,6 @@ struct WireDiaryEncryption: Decodable, Sendable {
 struct WireEncryptedData: Decodable, Sendable {
   let nonce: String
   let data: String
-}
-
-struct DiaryDetails: Decodable, Sendable {
-  let title: String
-  let description: String
 }
 
 extension String {

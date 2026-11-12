@@ -113,8 +113,11 @@ func listDiariesTestResponse(
     recipientPublicKey: credentials.encryptionPublicKey
   )
   let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: diaryKey)
+  var details = Io_Thingsdiary_V1_DiaryDetails()
+  details.title = "Private title"
+  details.description_p = "Private description"
   let encryptedDetails = try ThingsDiaryCrypto.encrypt(
-    Data(#"{"title":"Private title","description":"Private description"}"#.utf8),
+    details.serializedData(),
     key: entityKey
   )
 
@@ -123,7 +126,7 @@ func listDiariesTestResponse(
   key.value = sealedDiaryKey
   key.status = .active
 
-  var diary = Io_Thingsdiary_V1_Diary()
+  var diary = Io_Thingsdiary_V1_EncryptedDiary()
   diary.id = "diary-1"
   diary.version = 42
   diary.createdAt.seconds = 1_700_000_000

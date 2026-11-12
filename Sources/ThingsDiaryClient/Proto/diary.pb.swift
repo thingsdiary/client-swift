@@ -25,61 +25,19 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-public nonisolated struct Io_Thingsdiary_V1_Diary: Sendable {
+/// Plaintext serialized before encrypting EncryptedDiary.details.
+public nonisolated struct Io_Thingsdiary_V1_DiaryDetails: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String = String()
+  public var title: String = String()
 
-  public var version: UInt64 = 0
-
-  public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_createdAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_createdAt = newValue}
-  }
-  /// Returns true if `createdAt` has been explicitly set.
-  public var hasCreatedAt: Bool {self._createdAt != nil}
-  /// Clears the value of `createdAt`. Subsequent reads from it will return its default value.
-  public mutating func clearCreatedAt() {self._createdAt = nil}
-
-  public var updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_updatedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_updatedAt = newValue}
-  }
-  /// Returns true if `updatedAt` has been explicitly set.
-  public var hasUpdatedAt: Bool {self._updatedAt != nil}
-  /// Clears the value of `updatedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearUpdatedAt() {self._updatedAt = nil}
-
-  public var encryptionKeys: [Io_Thingsdiary_V1_DiaryEncryptionKey] = []
-
-  public var encryption: Io_Thingsdiary_V1_Encryption {
-    get {_encryption ?? Io_Thingsdiary_V1_Encryption()}
-    set {_encryption = newValue}
-  }
-  /// Returns true if `encryption` has been explicitly set.
-  public var hasEncryption: Bool {self._encryption != nil}
-  /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
-  public mutating func clearEncryption() {self._encryption = nil}
-
-  public var details: Io_Thingsdiary_V1_EncryptedData {
-    get {_details ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_details = newValue}
-  }
-  /// Returns true if `details` has been explicitly set.
-  public var hasDetails: Bool {self._details != nil}
-  /// Clears the value of `details`. Subsequent reads from it will return its default value.
-  public mutating func clearDetails() {self._details = nil}
+  public var description_p: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
-
-  fileprivate var _createdAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _encryption: Io_Thingsdiary_V1_Encryption? = nil
-  fileprivate var _details: Io_Thingsdiary_V1_EncryptedData? = nil
 }
 
 /// Centrifugo methods: io.thingsdiary.v1.diary.{create,get,list,put,delete}.
@@ -94,6 +52,7 @@ public nonisolated struct Io_Thingsdiary_V1_CreateDiaryRequest: Sendable {
 
   public var encryptedKeyData: Data = Data()
 
+  /// NOTE: This field was marked as deprecated in the .proto file.
   public var details: Io_Thingsdiary_V1_EncryptedData {
     get {_details ?? Io_Thingsdiary_V1_EncryptedData()}
     set {_details = newValue}
@@ -103,11 +62,21 @@ public nonisolated struct Io_Thingsdiary_V1_CreateDiaryRequest: Sendable {
   /// Clears the value of `details`. Subsequent reads from it will return its default value.
   public mutating func clearDetails() {self._details = nil}
 
+  public var change: Io_Thingsdiary_V1_Change {
+    get {_change ?? Io_Thingsdiary_V1_Change()}
+    set {_change = newValue}
+  }
+  /// Returns true if `change` has been explicitly set.
+  public var hasChange: Bool {self._change != nil}
+  /// Clears the value of `change`. Subsequent reads from it will return its default value.
+  public mutating func clearChange() {self._change = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _details: Io_Thingsdiary_V1_EncryptedData? = nil
+  fileprivate var _change: Io_Thingsdiary_V1_Change? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_CreateDiaryResponse: Sendable {
@@ -115,8 +84,8 @@ public nonisolated struct Io_Thingsdiary_V1_CreateDiaryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var diary: Io_Thingsdiary_V1_Diary {
-    get {_diary ?? Io_Thingsdiary_V1_Diary()}
+  public var diary: Io_Thingsdiary_V1_EncryptedDiary {
+    get {_diary ?? Io_Thingsdiary_V1_EncryptedDiary()}
     set {_diary = newValue}
   }
   /// Returns true if `diary` has been explicitly set.
@@ -128,7 +97,7 @@ public nonisolated struct Io_Thingsdiary_V1_CreateDiaryResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _diary: Io_Thingsdiary_V1_Diary? = nil
+  fileprivate var _diary: Io_Thingsdiary_V1_EncryptedDiary? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_DiaryCreated: Sendable {
@@ -147,8 +116,8 @@ public nonisolated struct Io_Thingsdiary_V1_DiaryCreated: Sendable {
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {self._occurredAt = nil}
 
-  public var diary: Io_Thingsdiary_V1_Diary {
-    get {_diary ?? Io_Thingsdiary_V1_Diary()}
+  public var diary: Io_Thingsdiary_V1_EncryptedDiary {
+    get {_diary ?? Io_Thingsdiary_V1_EncryptedDiary()}
     set {_diary = newValue}
   }
   /// Returns true if `diary` has been explicitly set.
@@ -161,7 +130,7 @@ public nonisolated struct Io_Thingsdiary_V1_DiaryCreated: Sendable {
   public init() {}
 
   fileprivate var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _diary: Io_Thingsdiary_V1_Diary? = nil
+  fileprivate var _diary: Io_Thingsdiary_V1_EncryptedDiary? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_GetDiaryRequest: Sendable {
@@ -181,8 +150,8 @@ public nonisolated struct Io_Thingsdiary_V1_GetDiaryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var diary: Io_Thingsdiary_V1_Diary {
-    get {_diary ?? Io_Thingsdiary_V1_Diary()}
+  public var diary: Io_Thingsdiary_V1_EncryptedDiary {
+    get {_diary ?? Io_Thingsdiary_V1_EncryptedDiary()}
     set {_diary = newValue}
   }
   /// Returns true if `diary` has been explicitly set.
@@ -194,7 +163,7 @@ public nonisolated struct Io_Thingsdiary_V1_GetDiaryResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _diary: Io_Thingsdiary_V1_Diary? = nil
+  fileprivate var _diary: Io_Thingsdiary_V1_EncryptedDiary? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_ListDiariesRequest: Sendable {
@@ -223,7 +192,7 @@ public nonisolated struct Io_Thingsdiary_V1_ListDiariesResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var diaries: [Io_Thingsdiary_V1_Diary] = []
+  public var diaries: [Io_Thingsdiary_V1_EncryptedDiary] = []
 
   public var page: Io_Thingsdiary_V1_PageInfo {
     get {_page ?? Io_Thingsdiary_V1_PageInfo()}
@@ -259,6 +228,7 @@ public nonisolated struct Io_Thingsdiary_V1_PutDiaryRequest: Sendable {
   /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
   public mutating func clearEncryption() {self._encryption = nil}
 
+  /// NOTE: This field was marked as deprecated in the .proto file.
   public var details: Io_Thingsdiary_V1_EncryptedData {
     get {_details ?? Io_Thingsdiary_V1_EncryptedData()}
     set {_details = newValue}
@@ -268,12 +238,22 @@ public nonisolated struct Io_Thingsdiary_V1_PutDiaryRequest: Sendable {
   /// Clears the value of `details`. Subsequent reads from it will return its default value.
   public mutating func clearDetails() {self._details = nil}
 
+  public var change: Io_Thingsdiary_V1_Change {
+    get {_change ?? Io_Thingsdiary_V1_Change()}
+    set {_change = newValue}
+  }
+  /// Returns true if `change` has been explicitly set.
+  public var hasChange: Bool {self._change != nil}
+  /// Clears the value of `change`. Subsequent reads from it will return its default value.
+  public mutating func clearChange() {self._change = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _encryption: Io_Thingsdiary_V1_Encryption? = nil
   fileprivate var _details: Io_Thingsdiary_V1_EncryptedData? = nil
+  fileprivate var _change: Io_Thingsdiary_V1_Change? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_PutDiaryResponse: Sendable {
@@ -281,8 +261,8 @@ public nonisolated struct Io_Thingsdiary_V1_PutDiaryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var diary: Io_Thingsdiary_V1_Diary {
-    get {_diary ?? Io_Thingsdiary_V1_Diary()}
+  public var diary: Io_Thingsdiary_V1_EncryptedDiary {
+    get {_diary ?? Io_Thingsdiary_V1_EncryptedDiary()}
     set {_diary = newValue}
   }
   /// Returns true if `diary` has been explicitly set.
@@ -294,7 +274,7 @@ public nonisolated struct Io_Thingsdiary_V1_PutDiaryResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _diary: Io_Thingsdiary_V1_Diary? = nil
+  fileprivate var _diary: Io_Thingsdiary_V1_EncryptedDiary? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_DiaryChanged: Sendable {
@@ -313,8 +293,8 @@ public nonisolated struct Io_Thingsdiary_V1_DiaryChanged: Sendable {
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {self._occurredAt = nil}
 
-  public var diary: Io_Thingsdiary_V1_Diary {
-    get {_diary ?? Io_Thingsdiary_V1_Diary()}
+  public var diary: Io_Thingsdiary_V1_EncryptedDiary {
+    get {_diary ?? Io_Thingsdiary_V1_EncryptedDiary()}
     set {_diary = newValue}
   }
   /// Returns true if `diary` has been explicitly set.
@@ -327,7 +307,7 @@ public nonisolated struct Io_Thingsdiary_V1_DiaryChanged: Sendable {
   public init() {}
 
   fileprivate var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _diary: Io_Thingsdiary_V1_Diary? = nil
+  fileprivate var _diary: Io_Thingsdiary_V1_EncryptedDiary? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_DeleteDiaryRequest: Sendable {
@@ -393,9 +373,9 @@ public nonisolated struct Io_Thingsdiary_V1_DiaryDeleted: Sendable {
 
 fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
-nonisolated extension Io_Thingsdiary_V1_Diary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Diary"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}encryption_keys\0\u{1}encryption\0\u{1}details\0")
+nonisolated extension Io_Thingsdiary_V1_DiaryDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DiaryDetails"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}title\0\u{1}description\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -403,55 +383,26 @@ nonisolated extension Io_Thingsdiary_V1_Diary: SwiftProtobuf.Message, SwiftProto
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.version) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._createdAt) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._updatedAt) }()
-      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.encryptionKeys) }()
-      case 6: try { try decoder.decodeSingularMessageField(value: &self._encryption) }()
-      case 7: try { try decoder.decodeSingularMessageField(value: &self._details) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.title) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    if !self.title.isEmpty {
+      try visitor.visitSingularStringField(value: self.title, fieldNumber: 1)
     }
-    if self.version != 0 {
-      try visitor.visitSingularUInt64Field(value: self.version, fieldNumber: 2)
+    if !self.description_p.isEmpty {
+      try visitor.visitSingularStringField(value: self.description_p, fieldNumber: 2)
     }
-    try { if let v = self._createdAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._updatedAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
-    if !self.encryptionKeys.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.encryptionKeys, fieldNumber: 5)
-    }
-    try { if let v = self._encryption {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    } }()
-    try { if let v = self._details {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Io_Thingsdiary_V1_Diary, rhs: Io_Thingsdiary_V1_Diary) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.version != rhs.version {return false}
-    if lhs._createdAt != rhs._createdAt {return false}
-    if lhs._updatedAt != rhs._updatedAt {return false}
-    if lhs.encryptionKeys != rhs.encryptionKeys {return false}
-    if lhs._encryption != rhs._encryption {return false}
-    if lhs._details != rhs._details {return false}
+  public static func ==(lhs: Io_Thingsdiary_V1_DiaryDetails, rhs: Io_Thingsdiary_V1_DiaryDetails) -> Bool {
+    if lhs.title != rhs.title {return false}
+    if lhs.description_p != rhs.description_p {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -459,7 +410,7 @@ nonisolated extension Io_Thingsdiary_V1_Diary: SwiftProtobuf.Message, SwiftProto
 
 nonisolated extension Io_Thingsdiary_V1_CreateDiaryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CreateDiaryRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}encrypted_diary_key\0\u{3}encrypted_key_nonce\0\u{3}encrypted_key_data\0\u{1}details\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}encrypted_diary_key\0\u{3}encrypted_key_nonce\0\u{3}encrypted_key_data\0\u{1}details\0\u{1}change\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -471,6 +422,7 @@ nonisolated extension Io_Thingsdiary_V1_CreateDiaryRequest: SwiftProtobuf.Messag
       case 2: try { try decoder.decodeSingularBytesField(value: &self.encryptedKeyNonce) }()
       case 3: try { try decoder.decodeSingularBytesField(value: &self.encryptedKeyData) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._details) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._change) }()
       default: break
       }
     }
@@ -493,6 +445,9 @@ nonisolated extension Io_Thingsdiary_V1_CreateDiaryRequest: SwiftProtobuf.Messag
     try { if let v = self._details {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
+    try { if let v = self._change {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -501,6 +456,7 @@ nonisolated extension Io_Thingsdiary_V1_CreateDiaryRequest: SwiftProtobuf.Messag
     if lhs.encryptedKeyNonce != rhs.encryptedKeyNonce {return false}
     if lhs.encryptedKeyData != rhs.encryptedKeyData {return false}
     if lhs._details != rhs._details {return false}
+    if lhs._change != rhs._change {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -723,7 +679,7 @@ nonisolated extension Io_Thingsdiary_V1_ListDiariesResponse: SwiftProtobuf.Messa
 
 nonisolated extension Io_Thingsdiary_V1_PutDiaryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".PutDiaryRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}diary_id\0\u{1}version\0\u{1}encryption\0\u{1}details\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}diary_id\0\u{1}version\0\u{1}encryption\0\u{1}details\0\u{1}change\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -735,6 +691,7 @@ nonisolated extension Io_Thingsdiary_V1_PutDiaryRequest: SwiftProtobuf.Message, 
       case 2: try { try decoder.decodeSingularUInt64Field(value: &self.version) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._encryption) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._details) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._change) }()
       default: break
       }
     }
@@ -757,6 +714,9 @@ nonisolated extension Io_Thingsdiary_V1_PutDiaryRequest: SwiftProtobuf.Message, 
     try { if let v = self._details {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
+    try { if let v = self._change {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -765,6 +725,7 @@ nonisolated extension Io_Thingsdiary_V1_PutDiaryRequest: SwiftProtobuf.Message, 
     if lhs.version != rhs.version {return false}
     if lhs._encryption != rhs._encryption {return false}
     if lhs._details != rhs._details {return false}
+    if lhs._change != rhs._change {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -138,15 +138,18 @@ extension ThingsDiaryClient {
       throw ThingsDiaryClientError.missingActiveEncryptionKey
     }
     let entityKey = randomEntryKey()
-    let plaintext = try JSONEncoder().encode(
-      EntryDetailsRequest(
-        content: params.content,
-        archived: params.archived,
-        bookmarked: params.bookmarked,
-        previewHidden: params.previewHidden
-      ))
-    let details = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
-    let preview = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
+    var payload = Io_Thingsdiary_V1_EntryDetails()
+    payload.content = params.content
+    payload.archived = params.archived
+    payload.bookmarked = params.bookmarked
+    payload.previewHidden = params.previewHidden
+    let details = try ThingsDiaryCrypto.encrypt(payload.serializedData(), key: entityKey)
+    var previewPayload = Io_Thingsdiary_V1_EntryPreview()
+    previewPayload.content = params.content
+    previewPayload.archived = params.archived
+    previewPayload.bookmarked = params.bookmarked
+    previewPayload.previewHidden = params.previewHidden
+    let preview = try ThingsDiaryCrypto.encrypt(previewPayload.serializedData(), key: entityKey)
     let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(
       entityKey,
       key: activeKey.value
@@ -223,7 +226,7 @@ extension ThingsDiaryClient {
       key: entityKey,
       nonce: entry.details.nonce
     )
-    let details = try JSONDecoder().decode(EntryDetails.self, from: detailsData)
+    let details = try Io_Thingsdiary_V1_EntryDetails(serializedBytes: detailsData)
     return ThingsDiaryEntry(
       id: entry.id,
       diaryID: entry.diaryID,
@@ -235,34 +238,11 @@ extension ThingsDiaryClient {
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
       deletedAt: entry.deletedAt,
+      removedAt: entry.removedAt,
       version: entry.version
     )
   }
 
-}
-
-private struct EntryDetails: Decodable {
-  let content: String
-  let archived: Bool
-  let bookmarked: Bool
-  let previewHidden: Bool
-
-  enum CodingKeys: String, CodingKey {
-    case content, archived, bookmarked
-    case previewHidden = "preview_hidden"
-  }
-}
-
-private struct EntryDetailsRequest: Encodable {
-  let content: String
-  let archived: Bool
-  let bookmarked: Bool
-  let previewHidden: Bool
-
-  enum CodingKeys: String, CodingKey {
-    case content, archived, bookmarked
-    case previewHidden = "preview_hidden"
-  }
 }
 
 private func randomEntryKey() -> Data {

@@ -133,13 +133,12 @@ extension ThingsDiaryClient {
       throw ThingsDiaryClientError.missingActiveEncryptionKey
     }
     let entityKey = randomEntryKey()
-    let plaintext = try JSONEncoder().encode(
-      TopicDetailsRequest(
-        title: params.title,
-        description: params.description,
-        color: params.color,
-        entryPreviewable: params.entryPreviewable
-      ))
+    var payload = Io_Thingsdiary_V1_TopicDetails()
+    payload.title = params.title
+    payload.description_p = params.description
+    payload.color = params.color
+    payload.entryPreviewable = params.entryPreviewable
+    let plaintext = try payload.serializedData()
     let encryptedDetails = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
     let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: activeKey.value)
     let wireTopic = try await putEncryptedTopic(
@@ -208,44 +207,21 @@ extension ThingsDiaryClient {
       key: entityKey,
       nonce: topic.details.nonce
     )
-    let details = try JSONDecoder().decode(TopicDetails.self, from: detailsData)
+    let details = try Io_Thingsdiary_V1_TopicDetails(serializedBytes: detailsData)
     return ThingsDiaryTopic(
       id: topic.id,
       diaryID: topic.diaryID,
       title: details.title,
-      description: details.description ?? "",
+      description: details.description_p,
       color: details.color,
-      entryPreviewable: details.entryPreviewable ?? true,
+      entryPreviewable: details.hasEntryPreviewable ? details.entryPreviewable : true,
       defaultTemplateID: topic.defaultTemplateID,
       createdAt: topic.createdAt,
       updatedAt: topic.updatedAt,
       deletedAt: topic.deletedAt,
+      removedAt: topic.removedAt,
       version: topic.version
     )
-  }
-}
-
-private struct TopicDetails: Decodable {
-  let title: String
-  let description: String?
-  let color: String
-  let entryPreviewable: Bool?
-
-  enum CodingKeys: String, CodingKey {
-    case title, description, color
-    case entryPreviewable = "entry_previewable"
-  }
-}
-
-private struct TopicDetailsRequest: Encodable {
-  let title: String
-  let description: String
-  let color: String
-  let entryPreviewable: Bool
-
-  enum CodingKeys: String, CodingKey {
-    case title, description, color
-    case entryPreviewable = "entry_previewable"
   }
 }
 

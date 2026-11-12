@@ -36,7 +36,7 @@ extension Io_Thingsdiary_V1_EncryptedData {
   }
 }
 
-extension Io_Thingsdiary_V1_Diary {
+extension Io_Thingsdiary_V1_EncryptedDiary {
   var wire: WireDiary {
     WireDiary(
       id: id,
@@ -59,7 +59,7 @@ extension Io_Thingsdiary_V1_Diary {
   }
 }
 
-extension Io_Thingsdiary_V1_Entry {
+extension Io_Thingsdiary_V1_EncryptedEntry {
   var wire: WireEntry {
     WireEntry(
       id: id,
@@ -68,6 +68,7 @@ extension Io_Thingsdiary_V1_Entry {
       createdAt: createdAt.thingsDiaryDate,
       updatedAt: updatedAt.thingsDiaryDate,
       deletedAt: hasDeletedAt ? deletedAt.thingsDiaryDate : nil,
+      removedAt: hasRemovedAt ? removedAt.thingsDiaryDate : nil,
       topicID: hasTopicID ? topicID : nil,
       encryption: encryption.model,
       details: details.model
@@ -75,7 +76,7 @@ extension Io_Thingsdiary_V1_Entry {
   }
 }
 
-extension Io_Thingsdiary_V1_Topic {
+extension Io_Thingsdiary_V1_EncryptedTopic {
   var wire: WireTopic {
     WireTopic(
       id: id,
@@ -84,6 +85,7 @@ extension Io_Thingsdiary_V1_Topic {
       createdAt: createdAt.thingsDiaryDate,
       updatedAt: updatedAt.thingsDiaryDate,
       deletedAt: hasDeletedAt ? deletedAt.thingsDiaryDate : nil,
+      removedAt: hasRemovedAt ? removedAt.thingsDiaryDate : nil,
       defaultTemplateID: hasDefaultTemplateID ? defaultTemplateID : nil,
       encryption: encryption.model,
       details: details.model
@@ -91,7 +93,7 @@ extension Io_Thingsdiary_V1_Topic {
   }
 }
 
-extension Io_Thingsdiary_V1_Template {
+extension Io_Thingsdiary_V1_EncryptedTemplate {
   var wire: WireTemplate {
     WireTemplate(
       id: id,
@@ -100,6 +102,7 @@ extension Io_Thingsdiary_V1_Template {
       createdAt: createdAt.thingsDiaryDate,
       updatedAt: updatedAt.thingsDiaryDate,
       deletedAt: hasDeletedAt ? deletedAt.thingsDiaryDate : nil,
+      removedAt: hasRemovedAt ? removedAt.thingsDiaryDate : nil,
       encryption: encryption.model,
       details: details.model
     )

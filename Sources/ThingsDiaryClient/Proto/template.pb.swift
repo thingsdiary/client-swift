@@ -20,81 +20,17 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-public nonisolated struct Io_Thingsdiary_V1_Template: Sendable {
+/// Plaintext serialized before encrypting EncryptedTemplate.details.
+public nonisolated struct Io_Thingsdiary_V1_TemplateDetails: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String = String()
-
-  public var diaryID: String = String()
-
-  public var version: UInt64 = 0
-
-  public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_createdAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_createdAt = newValue}
-  }
-  /// Returns true if `createdAt` has been explicitly set.
-  public var hasCreatedAt: Bool {self._createdAt != nil}
-  /// Clears the value of `createdAt`. Subsequent reads from it will return its default value.
-  public mutating func clearCreatedAt() {self._createdAt = nil}
-
-  public var updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_updatedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_updatedAt = newValue}
-  }
-  /// Returns true if `updatedAt` has been explicitly set.
-  public var hasUpdatedAt: Bool {self._updatedAt != nil}
-  /// Clears the value of `updatedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearUpdatedAt() {self._updatedAt = nil}
-
-  public var deletedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_deletedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_deletedAt = newValue}
-  }
-  /// Returns true if `deletedAt` has been explicitly set.
-  public var hasDeletedAt: Bool {self._deletedAt != nil}
-  /// Clears the value of `deletedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearDeletedAt() {self._deletedAt = nil}
-
-  public var encryption: Io_Thingsdiary_V1_Encryption {
-    get {_encryption ?? Io_Thingsdiary_V1_Encryption()}
-    set {_encryption = newValue}
-  }
-  /// Returns true if `encryption` has been explicitly set.
-  public var hasEncryption: Bool {self._encryption != nil}
-  /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
-  public mutating func clearEncryption() {self._encryption = nil}
-
-  public var details: Io_Thingsdiary_V1_EncryptedData {
-    get {_details ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_details = newValue}
-  }
-  /// Returns true if `details` has been explicitly set.
-  public var hasDetails: Bool {self._details != nil}
-  /// Clears the value of `details`. Subsequent reads from it will return its default value.
-  public mutating func clearDetails() {self._details = nil}
-
-  public var removedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_removedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_removedAt = newValue}
-  }
-  /// Returns true if `removedAt` has been explicitly set.
-  public var hasRemovedAt: Bool {self._removedAt != nil}
-  /// Clears the value of `removedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearRemovedAt() {self._removedAt = nil}
+  public var content: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
-
-  fileprivate var _createdAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _deletedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _encryption: Io_Thingsdiary_V1_Encryption? = nil
-  fileprivate var _details: Io_Thingsdiary_V1_EncryptedData? = nil
-  fileprivate var _removedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
 }
 
 /// Centrifugo methods: io.thingsdiary.v1.template.{get,list,put,delete,restore}.
@@ -117,8 +53,8 @@ public nonisolated struct Io_Thingsdiary_V1_GetTemplateResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var template: Io_Thingsdiary_V1_Template {
-    get {_template ?? Io_Thingsdiary_V1_Template()}
+  public var template: Io_Thingsdiary_V1_EncryptedTemplate {
+    get {_template ?? Io_Thingsdiary_V1_EncryptedTemplate()}
     set {_template = newValue}
   }
   /// Returns true if `template` has been explicitly set.
@@ -130,7 +66,7 @@ public nonisolated struct Io_Thingsdiary_V1_GetTemplateResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _template: Io_Thingsdiary_V1_Template? = nil
+  fileprivate var _template: Io_Thingsdiary_V1_EncryptedTemplate? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_ListTemplatesRequest: Sendable {
@@ -161,7 +97,7 @@ public nonisolated struct Io_Thingsdiary_V1_ListTemplatesResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var templates: [Io_Thingsdiary_V1_Template] = []
+  public var templates: [Io_Thingsdiary_V1_EncryptedTemplate] = []
 
   public var page: Io_Thingsdiary_V1_PageInfo {
     get {_page ?? Io_Thingsdiary_V1_PageInfo()}
@@ -221,8 +157,8 @@ public nonisolated struct Io_Thingsdiary_V1_PutTemplateResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var template: Io_Thingsdiary_V1_Template {
-    get {_template ?? Io_Thingsdiary_V1_Template()}
+  public var template: Io_Thingsdiary_V1_EncryptedTemplate {
+    get {_template ?? Io_Thingsdiary_V1_EncryptedTemplate()}
     set {_template = newValue}
   }
   /// Returns true if `template` has been explicitly set.
@@ -234,7 +170,7 @@ public nonisolated struct Io_Thingsdiary_V1_PutTemplateResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _template: Io_Thingsdiary_V1_Template? = nil
+  fileprivate var _template: Io_Thingsdiary_V1_EncryptedTemplate? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_DeleteTemplateRequest: Sendable {
@@ -291,8 +227,8 @@ public nonisolated struct Io_Thingsdiary_V1_RestoreTemplateResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var template: Io_Thingsdiary_V1_Template {
-    get {_template ?? Io_Thingsdiary_V1_Template()}
+  public var template: Io_Thingsdiary_V1_EncryptedTemplate {
+    get {_template ?? Io_Thingsdiary_V1_EncryptedTemplate()}
     set {_template = newValue}
   }
   /// Returns true if `template` has been explicitly set.
@@ -304,7 +240,7 @@ public nonisolated struct Io_Thingsdiary_V1_RestoreTemplateResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _template: Io_Thingsdiary_V1_Template? = nil
+  fileprivate var _template: Io_Thingsdiary_V1_EncryptedTemplate? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_TemplateChanged: @unchecked Sendable {
@@ -326,8 +262,8 @@ public nonisolated struct Io_Thingsdiary_V1_TemplateChanged: @unchecked Sendable
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {_uniqueStorage()._occurredAt = nil}
 
-  public var template: Io_Thingsdiary_V1_Template {
-    get {_storage._template ?? Io_Thingsdiary_V1_Template()}
+  public var template: Io_Thingsdiary_V1_EncryptedTemplate {
+    get {_storage._template ?? Io_Thingsdiary_V1_EncryptedTemplate()}
     set {_uniqueStorage()._template = newValue}
   }
   /// Returns true if `template` has been explicitly set.
@@ -361,8 +297,8 @@ public nonisolated struct Io_Thingsdiary_V1_TemplateDeleted: @unchecked Sendable
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {_uniqueStorage()._occurredAt = nil}
 
-  public var template: Io_Thingsdiary_V1_Template {
-    get {_storage._template ?? Io_Thingsdiary_V1_Template()}
+  public var template: Io_Thingsdiary_V1_EncryptedTemplate {
+    get {_storage._template ?? Io_Thingsdiary_V1_EncryptedTemplate()}
     set {_uniqueStorage()._template = newValue}
   }
   /// Returns true if `template` has been explicitly set.
@@ -396,8 +332,8 @@ public nonisolated struct Io_Thingsdiary_V1_TemplateRestored: @unchecked Sendabl
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {_uniqueStorage()._occurredAt = nil}
 
-  public var template: Io_Thingsdiary_V1_Template {
-    get {_storage._template ?? Io_Thingsdiary_V1_Template()}
+  public var template: Io_Thingsdiary_V1_EncryptedTemplate {
+    get {_storage._template ?? Io_Thingsdiary_V1_EncryptedTemplate()}
     set {_uniqueStorage()._template = newValue}
   }
   /// Returns true if `template` has been explicitly set.
@@ -416,9 +352,9 @@ public nonisolated struct Io_Thingsdiary_V1_TemplateRestored: @unchecked Sendabl
 
 fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
-nonisolated extension Io_Thingsdiary_V1_Template: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Template"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{1}encryption\0\u{1}details\0\u{3}removed_at\0")
+nonisolated extension Io_Thingsdiary_V1_TemplateDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TemplateDetails"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}content\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -426,65 +362,21 @@ nonisolated extension Io_Thingsdiary_V1_Template: SwiftProtobuf.Message, SwiftPr
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.diaryID) }()
-      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.version) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._createdAt) }()
-      case 5: try { try decoder.decodeSingularMessageField(value: &self._updatedAt) }()
-      case 6: try { try decoder.decodeSingularMessageField(value: &self._deletedAt) }()
-      case 7: try { try decoder.decodeSingularMessageField(value: &self._encryption) }()
-      case 8: try { try decoder.decodeSingularMessageField(value: &self._details) }()
-      case 9: try { try decoder.decodeSingularMessageField(value: &self._removedAt) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.content) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
+    if !self.content.isEmpty {
+      try visitor.visitSingularStringField(value: self.content, fieldNumber: 1)
     }
-    if !self.diaryID.isEmpty {
-      try visitor.visitSingularStringField(value: self.diaryID, fieldNumber: 2)
-    }
-    if self.version != 0 {
-      try visitor.visitSingularUInt64Field(value: self.version, fieldNumber: 3)
-    }
-    try { if let v = self._createdAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
-    try { if let v = self._updatedAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    } }()
-    try { if let v = self._deletedAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    } }()
-    try { if let v = self._encryption {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    } }()
-    try { if let v = self._details {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-    } }()
-    try { if let v = self._removedAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Io_Thingsdiary_V1_Template, rhs: Io_Thingsdiary_V1_Template) -> Bool {
-    if lhs.id != rhs.id {return false}
-    if lhs.diaryID != rhs.diaryID {return false}
-    if lhs.version != rhs.version {return false}
-    if lhs._createdAt != rhs._createdAt {return false}
-    if lhs._updatedAt != rhs._updatedAt {return false}
-    if lhs._deletedAt != rhs._deletedAt {return false}
-    if lhs._encryption != rhs._encryption {return false}
-    if lhs._details != rhs._details {return false}
-    if lhs._removedAt != rhs._removedAt {return false}
+  public static func ==(lhs: Io_Thingsdiary_V1_TemplateDetails, rhs: Io_Thingsdiary_V1_TemplateDetails) -> Bool {
+    if lhs.content != rhs.content {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -864,7 +756,7 @@ nonisolated extension Io_Thingsdiary_V1_TemplateChanged: SwiftProtobuf.Message, 
   fileprivate class _StorageClass {
     var _eventID: String = String()
     var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _template: Io_Thingsdiary_V1_Template? = nil
+    var _template: Io_Thingsdiary_V1_EncryptedTemplate? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -948,7 +840,7 @@ nonisolated extension Io_Thingsdiary_V1_TemplateDeleted: SwiftProtobuf.Message, 
   fileprivate class _StorageClass {
     var _eventID: String = String()
     var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _template: Io_Thingsdiary_V1_Template? = nil
+    var _template: Io_Thingsdiary_V1_EncryptedTemplate? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -1032,7 +924,7 @@ nonisolated extension Io_Thingsdiary_V1_TemplateRestored: SwiftProtobuf.Message,
   fileprivate class _StorageClass {
     var _eventID: String = String()
     var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _template: Io_Thingsdiary_V1_Template? = nil
+    var _template: Io_Thingsdiary_V1_EncryptedTemplate? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.

@@ -134,7 +134,9 @@ extension ThingsDiaryClient {
       throw ThingsDiaryClientError.missingActiveEncryptionKey
     }
     let entityKey = randomEntryKey()
-    let plaintext = try JSONEncoder().encode(TemplateDetailsRequest(content: params.content))
+    var payload = Io_Thingsdiary_V1_TemplateDetails()
+    payload.content = params.content
+    let plaintext = try payload.serializedData()
     let details = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
     let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: activeKey.value)
     let wireTemplate = try await putEncryptedTemplate(
@@ -206,7 +208,7 @@ extension ThingsDiaryClient {
       key: entityKey,
       nonce: template.details.nonce
     )
-    let details = try JSONDecoder().decode(TemplateDetails.self, from: detailsData)
+    let details = try Io_Thingsdiary_V1_TemplateDetails(serializedBytes: detailsData)
     return ThingsDiaryTemplate(
       id: template.id,
       diaryID: template.diaryID,
@@ -214,17 +216,10 @@ extension ThingsDiaryClient {
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
       deletedAt: template.deletedAt,
+      removedAt: template.removedAt,
       version: template.version
     )
   }
-}
-
-private struct TemplateDetails: Decodable {
-  let content: String
-}
-
-private struct TemplateDetailsRequest: Encodable {
-  let content: String
 }
 
 private func randomEntryKey() -> Data {

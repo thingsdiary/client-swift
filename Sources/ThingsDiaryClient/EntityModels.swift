@@ -69,6 +69,7 @@ public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
+  public let removedAt: Date?
   public let version: UInt64
 
   public init(
@@ -82,6 +83,7 @@ public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
+    removedAt: Date? = nil,
     version: UInt64
   ) {
     self.id = id
@@ -94,6 +96,7 @@ public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
+    self.removedAt = removedAt
     self.version = version
   }
 }
@@ -105,6 +108,7 @@ struct WireEntry: Codable, Sendable, Equatable {
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
+  public let removedAt: Date?
   public let topicID: String?
   public let encryption: ThingsDiaryEntityEncryption
   public let details: ThingsDiaryEncryptedPayload
@@ -116,6 +120,7 @@ struct WireEntry: Codable, Sendable, Equatable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
+    removedAt: Date? = nil,
     topicID: String? = nil,
     encryption: ThingsDiaryEntityEncryption,
     details: ThingsDiaryEncryptedPayload
@@ -126,6 +131,7 @@ struct WireEntry: Codable, Sendable, Equatable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
+    self.removedAt = removedAt
     self.topicID = topicID
     self.encryption = encryption
     self.details = details
@@ -137,6 +143,7 @@ struct WireEntry: Codable, Sendable, Equatable {
     case createdAt = "created_at"
     case updatedAt = "updated_at"
     case deletedAt = "deleted_at"
+    case removedAt = "removed_at"
     case topicID = "topic_id"
   }
 }
@@ -174,6 +181,7 @@ public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
+  public let removedAt: Date?
   public let version: UInt64
 
   public init(
@@ -187,6 +195,7 @@ public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
+    removedAt: Date? = nil,
     version: UInt64
   ) {
     self.id = id
@@ -199,6 +208,7 @@ public struct ThingsDiaryTopic: Sendable, Equatable, Identifiable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
+    self.removedAt = removedAt
     self.version = version
   }
 }
@@ -210,6 +220,7 @@ struct WireTopic: Codable, Sendable, Equatable {
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
+  public let removedAt: Date?
   public let defaultTemplateID: String?
   public let encryption: ThingsDiaryEntityEncryption
   public let details: ThingsDiaryEncryptedPayload
@@ -221,6 +232,7 @@ struct WireTopic: Codable, Sendable, Equatable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
+    removedAt: Date? = nil,
     defaultTemplateID: String? = nil,
     encryption: ThingsDiaryEntityEncryption,
     details: ThingsDiaryEncryptedPayload
@@ -231,6 +243,7 @@ struct WireTopic: Codable, Sendable, Equatable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
+    self.removedAt = removedAt
     self.defaultTemplateID = defaultTemplateID
     self.encryption = encryption
     self.details = details
@@ -242,6 +255,7 @@ struct WireTopic: Codable, Sendable, Equatable {
     case createdAt = "created_at"
     case updatedAt = "updated_at"
     case deletedAt = "deleted_at"
+    case removedAt = "removed_at"
     case defaultTemplateID = "default_template_id"
   }
 }
@@ -261,6 +275,7 @@ public struct ThingsDiaryTemplate: Sendable, Equatable, Identifiable {
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
+  public let removedAt: Date?
   public let version: UInt64
 
   public init(
@@ -270,6 +285,7 @@ public struct ThingsDiaryTemplate: Sendable, Equatable, Identifiable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
+    removedAt: Date? = nil,
     version: UInt64
   ) {
     self.id = id
@@ -278,6 +294,7 @@ public struct ThingsDiaryTemplate: Sendable, Equatable, Identifiable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
+    self.removedAt = removedAt
     self.version = version
   }
 }
@@ -289,6 +306,7 @@ struct WireTemplate: Codable, Sendable, Equatable {
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
+  public let removedAt: Date?
   public let encryption: ThingsDiaryEntityEncryption
   public let details: ThingsDiaryEncryptedPayload
 
@@ -299,6 +317,7 @@ struct WireTemplate: Codable, Sendable, Equatable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
+    removedAt: Date? = nil,
     encryption: ThingsDiaryEntityEncryption,
     details: ThingsDiaryEncryptedPayload
   ) {
@@ -308,6 +327,7 @@ struct WireTemplate: Codable, Sendable, Equatable {
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
+    self.removedAt = removedAt
     self.encryption = encryption
     self.details = details
   }
@@ -318,5 +338,6 @@ struct WireTemplate: Codable, Sendable, Equatable {
     case createdAt = "created_at"
     case updatedAt = "updated_at"
     case deletedAt = "deleted_at"
+    case removedAt = "removed_at"
   }
 }

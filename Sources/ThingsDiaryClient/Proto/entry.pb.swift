@@ -20,103 +20,43 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-public nonisolated struct Io_Thingsdiary_V1_Entry: @unchecked Sendable {
+/// Plaintext serialized before encrypting EncryptedEntry.details.
+public nonisolated struct Io_Thingsdiary_V1_EntryDetails: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var id: String {
-    get {_storage._id}
-    set {_uniqueStorage()._id = newValue}
-  }
+  public var content: String = String()
 
-  public var diaryID: String {
-    get {_storage._diaryID}
-    set {_uniqueStorage()._diaryID = newValue}
-  }
+  public var archived: Bool = false
 
-  public var version: UInt64 {
-    get {_storage._version}
-    set {_uniqueStorage()._version = newValue}
-  }
+  public var bookmarked: Bool = false
 
-  public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_storage._createdAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_uniqueStorage()._createdAt = newValue}
-  }
-  /// Returns true if `createdAt` has been explicitly set.
-  public var hasCreatedAt: Bool {_storage._createdAt != nil}
-  /// Clears the value of `createdAt`. Subsequent reads from it will return its default value.
-  public mutating func clearCreatedAt() {_uniqueStorage()._createdAt = nil}
-
-  public var updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_storage._updatedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_uniqueStorage()._updatedAt = newValue}
-  }
-  /// Returns true if `updatedAt` has been explicitly set.
-  public var hasUpdatedAt: Bool {_storage._updatedAt != nil}
-  /// Clears the value of `updatedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearUpdatedAt() {_uniqueStorage()._updatedAt = nil}
-
-  public var deletedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_storage._deletedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_uniqueStorage()._deletedAt = newValue}
-  }
-  /// Returns true if `deletedAt` has been explicitly set.
-  public var hasDeletedAt: Bool {_storage._deletedAt != nil}
-  /// Clears the value of `deletedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearDeletedAt() {_uniqueStorage()._deletedAt = nil}
-
-  public var topicID: String {
-    get {_storage._topicID ?? String()}
-    set {_uniqueStorage()._topicID = newValue}
-  }
-  /// Returns true if `topicID` has been explicitly set.
-  public var hasTopicID: Bool {_storage._topicID != nil}
-  /// Clears the value of `topicID`. Subsequent reads from it will return its default value.
-  public mutating func clearTopicID() {_uniqueStorage()._topicID = nil}
-
-  public var encryption: Io_Thingsdiary_V1_Encryption {
-    get {_storage._encryption ?? Io_Thingsdiary_V1_Encryption()}
-    set {_uniqueStorage()._encryption = newValue}
-  }
-  /// Returns true if `encryption` has been explicitly set.
-  public var hasEncryption: Bool {_storage._encryption != nil}
-  /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
-  public mutating func clearEncryption() {_uniqueStorage()._encryption = nil}
-
-  public var details: Io_Thingsdiary_V1_EncryptedData {
-    get {_storage._details ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_uniqueStorage()._details = newValue}
-  }
-  /// Returns true if `details` has been explicitly set.
-  public var hasDetails: Bool {_storage._details != nil}
-  /// Clears the value of `details`. Subsequent reads from it will return its default value.
-  public mutating func clearDetails() {_uniqueStorage()._details = nil}
-
-  public var preview: Io_Thingsdiary_V1_EncryptedData {
-    get {_storage._preview ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_uniqueStorage()._preview = newValue}
-  }
-  /// Returns true if `preview` has been explicitly set.
-  public var hasPreview: Bool {_storage._preview != nil}
-  /// Clears the value of `preview`. Subsequent reads from it will return its default value.
-  public mutating func clearPreview() {_uniqueStorage()._preview = nil}
-
-  public var removedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_storage._removedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_uniqueStorage()._removedAt = newValue}
-  }
-  /// Returns true if `removedAt` has been explicitly set.
-  public var hasRemovedAt: Bool {_storage._removedAt != nil}
-  /// Clears the value of `removedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearRemovedAt() {_uniqueStorage()._removedAt = nil}
+  public var previewHidden: Bool = false
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
+/// Plaintext serialized before encrypting EncryptedEntry.preview.
+/// The current clients use the same content and flags as EntryDetails.
+public nonisolated struct Io_Thingsdiary_V1_EntryPreview: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var content: String = String()
+
+  public var archived: Bool = false
+
+  public var bookmarked: Bool = false
+
+  public var previewHidden: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 /// Centrifugo methods: io.thingsdiary.v1.entry.{get,list,put,delete,restore}.
@@ -139,8 +79,8 @@ public nonisolated struct Io_Thingsdiary_V1_GetEntryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var entry: Io_Thingsdiary_V1_Entry {
-    get {_entry ?? Io_Thingsdiary_V1_Entry()}
+  public var entry: Io_Thingsdiary_V1_EncryptedEntry {
+    get {_entry ?? Io_Thingsdiary_V1_EncryptedEntry()}
     set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
@@ -152,7 +92,7 @@ public nonisolated struct Io_Thingsdiary_V1_GetEntryResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _entry: Io_Thingsdiary_V1_Entry? = nil
+  fileprivate var _entry: Io_Thingsdiary_V1_EncryptedEntry? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_ListEntriesRequest: Sendable {
@@ -183,7 +123,7 @@ public nonisolated struct Io_Thingsdiary_V1_ListEntriesResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var entries: [Io_Thingsdiary_V1_Entry] = []
+  public var entries: [Io_Thingsdiary_V1_EncryptedEntry] = []
 
   public var page: Io_Thingsdiary_V1_PageInfo {
     get {_page ?? Io_Thingsdiary_V1_PageInfo()}
@@ -263,8 +203,8 @@ public nonisolated struct Io_Thingsdiary_V1_PutEntryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var entry: Io_Thingsdiary_V1_Entry {
-    get {_entry ?? Io_Thingsdiary_V1_Entry()}
+  public var entry: Io_Thingsdiary_V1_EncryptedEntry {
+    get {_entry ?? Io_Thingsdiary_V1_EncryptedEntry()}
     set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
@@ -276,7 +216,7 @@ public nonisolated struct Io_Thingsdiary_V1_PutEntryResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _entry: Io_Thingsdiary_V1_Entry? = nil
+  fileprivate var _entry: Io_Thingsdiary_V1_EncryptedEntry? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_DeleteEntryRequest: Sendable {
@@ -333,8 +273,8 @@ public nonisolated struct Io_Thingsdiary_V1_RestoreEntryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var entry: Io_Thingsdiary_V1_Entry {
-    get {_entry ?? Io_Thingsdiary_V1_Entry()}
+  public var entry: Io_Thingsdiary_V1_EncryptedEntry {
+    get {_entry ?? Io_Thingsdiary_V1_EncryptedEntry()}
     set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
@@ -346,7 +286,7 @@ public nonisolated struct Io_Thingsdiary_V1_RestoreEntryResponse: Sendable {
 
   public init() {}
 
-  fileprivate var _entry: Io_Thingsdiary_V1_Entry? = nil
+  fileprivate var _entry: Io_Thingsdiary_V1_EncryptedEntry? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_EntryChanged: Sendable {
@@ -365,8 +305,8 @@ public nonisolated struct Io_Thingsdiary_V1_EntryChanged: Sendable {
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {self._occurredAt = nil}
 
-  public var entry: Io_Thingsdiary_V1_Entry {
-    get {_entry ?? Io_Thingsdiary_V1_Entry()}
+  public var entry: Io_Thingsdiary_V1_EncryptedEntry {
+    get {_entry ?? Io_Thingsdiary_V1_EncryptedEntry()}
     set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
@@ -379,7 +319,7 @@ public nonisolated struct Io_Thingsdiary_V1_EntryChanged: Sendable {
   public init() {}
 
   fileprivate var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _entry: Io_Thingsdiary_V1_Entry? = nil
+  fileprivate var _entry: Io_Thingsdiary_V1_EncryptedEntry? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_EntryDeleted: Sendable {
@@ -398,8 +338,8 @@ public nonisolated struct Io_Thingsdiary_V1_EntryDeleted: Sendable {
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {self._occurredAt = nil}
 
-  public var entry: Io_Thingsdiary_V1_Entry {
-    get {_entry ?? Io_Thingsdiary_V1_Entry()}
+  public var entry: Io_Thingsdiary_V1_EncryptedEntry {
+    get {_entry ?? Io_Thingsdiary_V1_EncryptedEntry()}
     set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
@@ -412,7 +352,7 @@ public nonisolated struct Io_Thingsdiary_V1_EntryDeleted: Sendable {
   public init() {}
 
   fileprivate var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _entry: Io_Thingsdiary_V1_Entry? = nil
+  fileprivate var _entry: Io_Thingsdiary_V1_EncryptedEntry? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_EntryRestored: Sendable {
@@ -431,8 +371,8 @@ public nonisolated struct Io_Thingsdiary_V1_EntryRestored: Sendable {
   /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
   public mutating func clearOccurredAt() {self._occurredAt = nil}
 
-  public var entry: Io_Thingsdiary_V1_Entry {
-    get {_entry ?? Io_Thingsdiary_V1_Entry()}
+  public var entry: Io_Thingsdiary_V1_EncryptedEntry {
+    get {_entry ?? Io_Thingsdiary_V1_EncryptedEntry()}
     set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
@@ -445,148 +385,98 @@ public nonisolated struct Io_Thingsdiary_V1_EntryRestored: Sendable {
   public init() {}
 
   fileprivate var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _entry: Io_Thingsdiary_V1_Entry? = nil
+  fileprivate var _entry: Io_Thingsdiary_V1_EncryptedEntry? = nil
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
-nonisolated extension Io_Thingsdiary_V1_Entry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".Entry"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}topic_id\0\u{1}encryption\0\u{1}details\0\u{1}preview\0\u{3}removed_at\0")
-
-  fileprivate class _StorageClass {
-    var _id: String = String()
-    var _diaryID: String = String()
-    var _version: UInt64 = 0
-    var _createdAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _deletedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-    var _topicID: String? = nil
-    var _encryption: Io_Thingsdiary_V1_Encryption? = nil
-    var _details: Io_Thingsdiary_V1_EncryptedData? = nil
-    var _preview: Io_Thingsdiary_V1_EncryptedData? = nil
-    var _removedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _id = source._id
-      _diaryID = source._diaryID
-      _version = source._version
-      _createdAt = source._createdAt
-      _updatedAt = source._updatedAt
-      _deletedAt = source._deletedAt
-      _topicID = source._topicID
-      _encryption = source._encryption
-      _details = source._details
-      _preview = source._preview
-      _removedAt = source._removedAt
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
+nonisolated extension Io_Thingsdiary_V1_EntryDetails: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".EntryDetails"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}content\0\u{1}archived\0\u{1}bookmarked\0\u{3}preview_hidden\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
-        case 2: try { try decoder.decodeSingularStringField(value: &_storage._diaryID) }()
-        case 3: try { try decoder.decodeSingularUInt64Field(value: &_storage._version) }()
-        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._createdAt) }()
-        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._updatedAt) }()
-        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._deletedAt) }()
-        case 7: try { try decoder.decodeSingularStringField(value: &_storage._topicID) }()
-        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._encryption) }()
-        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._details) }()
-        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._preview) }()
-        case 11: try { try decoder.decodeSingularMessageField(value: &_storage._removedAt) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.content) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.archived) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.bookmarked) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.previewHidden) }()
+      default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      if !_storage._id.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 1)
-      }
-      if !_storage._diaryID.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._diaryID, fieldNumber: 2)
-      }
-      if _storage._version != 0 {
-        try visitor.visitSingularUInt64Field(value: _storage._version, fieldNumber: 3)
-      }
-      try { if let v = _storage._createdAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-      } }()
-      try { if let v = _storage._updatedAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-      } }()
-      try { if let v = _storage._deletedAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-      } }()
-      try { if let v = _storage._topicID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 7)
-      } }()
-      try { if let v = _storage._encryption {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
-      } }()
-      try { if let v = _storage._details {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-      } }()
-      try { if let v = _storage._preview {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-      } }()
-      try { if let v = _storage._removedAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-      } }()
+    if !self.content.isEmpty {
+      try visitor.visitSingularStringField(value: self.content, fieldNumber: 1)
+    }
+    if self.archived != false {
+      try visitor.visitSingularBoolField(value: self.archived, fieldNumber: 2)
+    }
+    if self.bookmarked != false {
+      try visitor.visitSingularBoolField(value: self.bookmarked, fieldNumber: 3)
+    }
+    if self.previewHidden != false {
+      try visitor.visitSingularBoolField(value: self.previewHidden, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Io_Thingsdiary_V1_Entry, rhs: Io_Thingsdiary_V1_Entry) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._id != rhs_storage._id {return false}
-        if _storage._diaryID != rhs_storage._diaryID {return false}
-        if _storage._version != rhs_storage._version {return false}
-        if _storage._createdAt != rhs_storage._createdAt {return false}
-        if _storage._updatedAt != rhs_storage._updatedAt {return false}
-        if _storage._deletedAt != rhs_storage._deletedAt {return false}
-        if _storage._topicID != rhs_storage._topicID {return false}
-        if _storage._encryption != rhs_storage._encryption {return false}
-        if _storage._details != rhs_storage._details {return false}
-        if _storage._preview != rhs_storage._preview {return false}
-        if _storage._removedAt != rhs_storage._removedAt {return false}
-        return true
+  public static func ==(lhs: Io_Thingsdiary_V1_EntryDetails, rhs: Io_Thingsdiary_V1_EntryDetails) -> Bool {
+    if lhs.content != rhs.content {return false}
+    if lhs.archived != rhs.archived {return false}
+    if lhs.bookmarked != rhs.bookmarked {return false}
+    if lhs.previewHidden != rhs.previewHidden {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Io_Thingsdiary_V1_EntryPreview: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".EntryPreview"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}content\0\u{1}archived\0\u{1}bookmarked\0\u{3}preview_hidden\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.content) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.archived) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.bookmarked) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.previewHidden) }()
+      default: break
       }
-      if !storagesAreEqual {return false}
     }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.content.isEmpty {
+      try visitor.visitSingularStringField(value: self.content, fieldNumber: 1)
+    }
+    if self.archived != false {
+      try visitor.visitSingularBoolField(value: self.archived, fieldNumber: 2)
+    }
+    if self.bookmarked != false {
+      try visitor.visitSingularBoolField(value: self.bookmarked, fieldNumber: 3)
+    }
+    if self.previewHidden != false {
+      try visitor.visitSingularBoolField(value: self.previewHidden, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Io_Thingsdiary_V1_EntryPreview, rhs: Io_Thingsdiary_V1_EntryPreview) -> Bool {
+    if lhs.content != rhs.content {return false}
+    if lhs.archived != rhs.archived {return false}
+    if lhs.bookmarked != rhs.bookmarked {return false}
+    if lhs.previewHidden != rhs.previewHidden {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

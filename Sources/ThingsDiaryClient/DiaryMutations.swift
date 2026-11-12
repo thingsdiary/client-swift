@@ -164,14 +164,12 @@ extension ThingsDiaryClient {
   }
 
   private func encodeDetails(title: String, description: String) throws -> Data {
-    try JSONEncoder().encode(DiaryDetailsRequest(title: title, description: description))
+    var details = Io_Thingsdiary_V1_DiaryDetails()
+    details.title = title
+    details.description_p = description
+    return try details.serializedData()
   }
 
-}
-
-private struct DiaryDetailsRequest: Encodable {
-  let title: String
-  let description: String
 }
 
 private struct DiaryChangesResponse: Decodable {
