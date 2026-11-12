@@ -76,6 +76,15 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedTopic: @unchecked Sendable 
   /// Clears the value of `removedAt`. Subsequent reads from it will return its default value.
   public mutating func clearRemovedAt() {_uniqueStorage()._removedAt = nil}
 
+  public var defaultTemplateID: String {
+    get {_storage._defaultTemplateID ?? String()}
+    set {_uniqueStorage()._defaultTemplateID = newValue}
+  }
+  /// Returns true if `defaultTemplateID` has been explicitly set.
+  public var hasDefaultTemplateID: Bool {_storage._defaultTemplateID != nil}
+  /// Clears the value of `defaultTemplateID`. Subsequent reads from it will return its default value.
+  public mutating func clearDefaultTemplateID() {_uniqueStorage()._defaultTemplateID = nil}
+
   public var encryption: Io_Thingsdiary_V1_Encryption {
     get {_storage._encryption ?? Io_Thingsdiary_V1_Encryption()}
     set {_uniqueStorage()._encryption = newValue}
@@ -94,15 +103,6 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedTopic: @unchecked Sendable 
   /// Clears the value of `details`. Subsequent reads from it will return its default value.
   public mutating func clearDetails() {_uniqueStorage()._details = nil}
 
-  public var defaultTemplateID: String {
-    get {_storage._defaultTemplateID ?? String()}
-    set {_uniqueStorage()._defaultTemplateID = newValue}
-  }
-  /// Returns true if `defaultTemplateID` has been explicitly set.
-  public var hasDefaultTemplateID: Bool {_storage._defaultTemplateID != nil}
-  /// Clears the value of `defaultTemplateID`. Subsequent reads from it will return its default value.
-  public mutating func clearDefaultTemplateID() {_uniqueStorage()._defaultTemplateID = nil}
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -116,7 +116,7 @@ fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
 nonisolated extension Io_Thingsdiary_V1_EncryptedTopic: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EncryptedTopic"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}removed_at\0\u{1}encryption\0\u{1}details\0\u{3}default_template_id\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}removed_at\0\u{3}default_template_id\0\u{1}encryption\0\u{1}details\0")
 
   fileprivate class _StorageClass {
     var _id: String = String()
@@ -126,9 +126,9 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedTopic: SwiftProtobuf.Message, S
     var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     var _deletedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     var _removedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+    var _defaultTemplateID: String? = nil
     var _encryption: Io_Thingsdiary_V1_Encryption? = nil
     var _details: Io_Thingsdiary_V1_EncryptedData? = nil
-    var _defaultTemplateID: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -146,9 +146,9 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedTopic: SwiftProtobuf.Message, S
       _updatedAt = source._updatedAt
       _deletedAt = source._deletedAt
       _removedAt = source._removedAt
+      _defaultTemplateID = source._defaultTemplateID
       _encryption = source._encryption
       _details = source._details
-      _defaultTemplateID = source._defaultTemplateID
     }
   }
 
@@ -174,9 +174,9 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedTopic: SwiftProtobuf.Message, S
         case 5: try { try decoder.decodeSingularMessageField(value: &_storage._updatedAt) }()
         case 6: try { try decoder.decodeSingularMessageField(value: &_storage._deletedAt) }()
         case 7: try { try decoder.decodeSingularMessageField(value: &_storage._removedAt) }()
-        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._encryption) }()
-        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._details) }()
-        case 10: try { try decoder.decodeSingularStringField(value: &_storage._defaultTemplateID) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._defaultTemplateID) }()
+        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._encryption) }()
+        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._details) }()
         default: break
         }
       }
@@ -210,14 +210,14 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedTopic: SwiftProtobuf.Message, S
       try { if let v = _storage._removedAt {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
       } }()
-      try { if let v = _storage._encryption {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+      try { if let v = _storage._defaultTemplateID {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 8)
       } }()
-      try { if let v = _storage._details {
+      try { if let v = _storage._encryption {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
       } }()
-      try { if let v = _storage._defaultTemplateID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 10)
+      try { if let v = _storage._details {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -235,9 +235,9 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedTopic: SwiftProtobuf.Message, S
         if _storage._updatedAt != rhs_storage._updatedAt {return false}
         if _storage._deletedAt != rhs_storage._deletedAt {return false}
         if _storage._removedAt != rhs_storage._removedAt {return false}
+        if _storage._defaultTemplateID != rhs_storage._defaultTemplateID {return false}
         if _storage._encryption != rhs_storage._encryption {return false}
         if _storage._details != rhs_storage._details {return false}
-        if _storage._defaultTemplateID != rhs_storage._defaultTemplateID {return false}
         return true
       }
       if !storagesAreEqual {return false}
