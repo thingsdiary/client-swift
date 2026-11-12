@@ -45,6 +45,37 @@ public nonisolated struct Io_Thingsdiary_V1_Change: Sendable {
   public init() {}
 }
 
+public nonisolated struct Io_Thingsdiary_V1_EncryptedChange: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var change: Io_Thingsdiary_V1_Change {
+    get {_change ?? Io_Thingsdiary_V1_Change()}
+    set {_change = newValue}
+  }
+  /// Returns true if `change` has been explicitly set.
+  public var hasChange: Bool {self._change != nil}
+  /// Clears the value of `change`. Subsequent reads from it will return its default value.
+  public mutating func clearChange() {self._change = nil}
+
+  public var encryption: Io_Thingsdiary_V1_Encryption {
+    get {_encryption ?? Io_Thingsdiary_V1_Encryption()}
+    set {_encryption = newValue}
+  }
+  /// Returns true if `encryption` has been explicitly set.
+  public var hasEncryption: Bool {self._encryption != nil}
+  /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
+  public mutating func clearEncryption() {self._encryption = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _change: Io_Thingsdiary_V1_Change? = nil
+  fileprivate var _encryption: Io_Thingsdiary_V1_Encryption? = nil
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
@@ -89,6 +120,45 @@ nonisolated extension Io_Thingsdiary_V1_Change: SwiftProtobuf.Message, SwiftProt
     if lhs.objectID != rhs.objectID {return false}
     if lhs.parentChangeIds != rhs.parentChangeIds {return false}
     if lhs.payload != rhs.payload {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension Io_Thingsdiary_V1_EncryptedChange: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".EncryptedChange"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}change\0\u{1}encryption\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._change) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._encryption) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._change {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._encryption {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Io_Thingsdiary_V1_EncryptedChange, rhs: Io_Thingsdiary_V1_EncryptedChange) -> Bool {
+    if lhs._change != rhs._change {return false}
+    if lhs._encryption != rhs._encryption {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

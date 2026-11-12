@@ -27,12 +27,20 @@ func createDiaryReturnsRPCResult() async throws {
   let realtime = MockRealtimeTransport()
   let credentials = try realtimeTestCredentials()
   realtime.handler = { method, data in
-    #expect(method == "io.thingsdiary.v1.diary.create")
-    _ = try Io_Thingsdiary_V1_CreateDiaryRequest(serializedBytes: data)
-
-    var response = Io_Thingsdiary_V1_CreateDiaryResponse()
-    response.diary = try listDiariesTestResponse(credentials: credentials).diaries[0]
-    return try response.serializedData()
+    switch method {
+    case "io.thingsdiary.v1.diary.create":
+      _ = try Io_Thingsdiary_V1_CreateDiaryRequest(serializedBytes: data)
+      var response = Io_Thingsdiary_V1_CreateDiaryResponse()
+      response.diaryID = "diary-1"
+      return try response.serializedData()
+    case "io.thingsdiary.v1.diary.get":
+      var response = Io_Thingsdiary_V1_GetDiaryResponse()
+      response.diary = try listDiariesTestResponse(credentials: credentials).diaries[0]
+      return try response.serializedData()
+    default:
+      Issue.record("Unexpected method: \(method)")
+      return Data()
+    }
   }
   let client = try await authenticatedMockClient(realtime: realtime)
 

@@ -14,22 +14,29 @@ extension ThingsDiaryClient {
       diaryKey,
       recipientPublicKey: authentication.credentials.encryptionPublicKey
     )
-    var request = Io_Thingsdiary_V1_CreateDiaryRequest()
-    request.encryptedDiaryKey = sealedDiaryKey
-    request.encryptedKeyNonce = encryptedEntityKey.nonce
-    request.encryptedKeyData = encryptedEntityKey.ciphertext
-    request.details = Io_Thingsdiary_V1_EncryptedData(
-      ThingsDiaryEncryptedPayload(
-        nonce: encryptedDetails.nonce,
-        data: encryptedDetails.ciphertext
+    var change = Io_Thingsdiary_V1_Change()
+    change.id = UUID().uuidString
+    change.payload = try Io_Thingsdiary_V1_EncryptedData(
+      ThingsDiaryEncryptedPayload(nonce: encryptedDetails.nonce, data: encryptedDetails.ciphertext)
+    ).serializedData()
+    var encryptedChange = Io_Thingsdiary_V1_EncryptedChange()
+    encryptedChange.change = change
+    encryptedChange.encryption = Io_Thingsdiary_V1_Encryption(
+      ThingsDiaryEntityEncryption(
+        diaryKeyID: "",
+        encryptedKeyNonce: encryptedEntityKey.nonce,
+        encryptedKeyData: encryptedEntityKey.ciphertext
       )
     )
+    var request = Io_Thingsdiary_V1_CreateDiaryRequest()
+    request.encryptedDiaryKey = sealedDiaryKey
+    request.encryptedChange = encryptedChange
     let response = try await rpc(
       "io.thingsdiary.v1.diary.create",
       request: request,
       response: Io_Thingsdiary_V1_CreateDiaryResponse.self
     )
-    return try decrypt(response.diary.wire, credentials: authentication.credentials)
+    return try await getDiary(id: response.diaryID)
   }
 
   public func createDiary(title: String, description: String) async throws -> ThingsDiaryDiary {
@@ -37,38 +44,48 @@ extension ThingsDiaryClient {
   }
 
   public func putDiary(id: String, params: ThingsDiaryPutParams) async throws -> ThingsDiaryDiary {
-    guard let authentication else { throw ThingsDiaryClientError.notAuthenticated }
-    guard let activeKey = try await getDiaryKeys(diaryID: id).first(where: { $0.status == .active })
-    else {
-      throw ThingsDiaryClientError.missingActiveEncryptionKey
-    }
+    guard authentication != nil else { throw ThingsDiaryClientError.notAuthenticated }
+    var getRequest = Io_Thingsdiary_V1_GetDiaryRequest()
+    getRequest.diaryID = id
+    let currentResponse = try await rpc(
+      "io.thingsdiary.v1.diary.get",
+      request: getRequest,
+      response: Io_Thingsdiary_V1_GetDiaryResponse.self
+    )
+    let currentDiary = currentResponse.diary
+    guard let activeKey = currentDiary.encryptionKeys.first(where: { $0.status == .active })
+      ?? currentDiary.encryptionKeys.first
+    else { throw ThingsDiaryClientError.missingActiveEncryptionKey }
 
     let entityKey = randomSymmetricKey()
     let details = try encodeDetails(title: params.title, description: params.description)
     let encryptedDetails = try ThingsDiaryCrypto.encrypt(details, key: entityKey)
     let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: activeKey.value)
-    var request = Io_Thingsdiary_V1_PutDiaryRequest()
-    request.diaryID = id
-    request.version = params.version
-    request.encryption = Io_Thingsdiary_V1_Encryption(
+    var change = Io_Thingsdiary_V1_Change()
+    change.id = UUID().uuidString
+    change.objectID = id
+    change.parentChangeIds = currentDiary.hasChange ? [currentDiary.change.change.id] : []
+    change.payload = try Io_Thingsdiary_V1_EncryptedData(
+      ThingsDiaryEncryptedPayload(nonce: encryptedDetails.nonce, data: encryptedDetails.ciphertext)
+    ).serializedData()
+    var encryptedChange = Io_Thingsdiary_V1_EncryptedChange()
+    encryptedChange.change = change
+    encryptedChange.encryption = Io_Thingsdiary_V1_Encryption(
       ThingsDiaryEntityEncryption(
         diaryKeyID: activeKey.id,
         encryptedKeyNonce: encryptedEntityKey.nonce,
         encryptedKeyData: encryptedEntityKey.ciphertext
       )
     )
-    request.details = Io_Thingsdiary_V1_EncryptedData(
-      ThingsDiaryEncryptedPayload(
-        nonce: encryptedDetails.nonce,
-        data: encryptedDetails.ciphertext
-      )
-    )
-    let response = try await rpc(
+    var request = Io_Thingsdiary_V1_PutDiaryRequest()
+    request.diaryID = id
+    request.encryptedChange = encryptedChange
+    _ = try await rpc(
       "io.thingsdiary.v1.diary.put",
       request: request,
       response: Io_Thingsdiary_V1_PutDiaryResponse.self
     )
-    return try decrypt(response.diary.wire, credentials: authentication.credentials)
+    return try await getDiary(id: id)
   }
 
   public func updateDiary(id: String, params: ThingsDiaryPutParams) async throws -> ThingsDiaryDiary

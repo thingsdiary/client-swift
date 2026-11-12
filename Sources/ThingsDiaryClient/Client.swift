@@ -171,19 +171,20 @@ public actor ThingsDiaryClient {
       throw ThingsDiaryClientError.missingActiveEncryptionKey
     }
     let diaryKey = try ThingsDiaryCrypto.openSealedBox(
-      try decodeBase64(encryptedDiaryKey.value),
+      encryptedDiaryKey.value,
       recipientPrivateKey: credentials.encryptionPrivateKey,
       recipientPublicKey: credentials.encryptionPublicKey
     )
     let entityKey = try ThingsDiaryCrypto.decrypt(
-      try decodeBase64(diary.encryption.encryptedKeyData),
+      diary.change.encryption.encryptedKeyData,
       key: diaryKey,
-      nonce: try decodeBase64(diary.encryption.encryptedKeyNonce)
+      nonce: diary.change.encryption.encryptedKeyNonce
     )
+    let encryptedPayload = try Io_Thingsdiary_V1_EncryptedData(serializedBytes: diary.change.change.payload)
     let detailsData = try ThingsDiaryCrypto.decrypt(
-      try decodeBase64(diary.details.data),
+      encryptedPayload.data,
       key: entityKey,
-      nonce: try decodeBase64(diary.details.nonce)
+      nonce: encryptedPayload.nonce
     )
     let details = try Io_Thingsdiary_V1_DiaryDetails(serializedBytes: detailsData)
 
@@ -193,7 +194,7 @@ public actor ThingsDiaryClient {
       description: details.description_p,
       createdAt: diary.createdAt,
       updatedAt: diary.updatedAt,
-      version: diary.version
+      version: UInt64(max(0, diary.updatedAt.timeIntervalSince1970 * 1_000_000_000))
     )
   }
 
@@ -250,29 +251,39 @@ private struct LoginVerifyResponse: Decodable, Sendable {
 
 struct WireDiary: Decodable, Sendable {
   let id: String
-  let version: UInt64
   let createdAt: Date
   let updatedAt: Date
   let encryptionKeys: [WireEncryptionKey]
-  let encryption: WireDiaryEncryption
-  let details: WireEncryptedData
-
-  enum CodingKeys: String, CodingKey {
-    case id, version, encryption, details
-    case createdAt = "created_at"
-    case updatedAt = "updated_at"
-    case encryptionKeys = "encryption_keys"
-  }
+  let change: WireEncryptedChange
 }
 
 struct WireEncryptionKey: Decodable, Sendable {
-  let value: String
+  let value: Data
   let status: String
 }
 
+struct WireEncryptedChange: Decodable, Sendable {
+  let change: WireChange
+  let encryption: WireDiaryEncryption
+}
+
+struct WireChange: Decodable, Sendable {
+  let id: String
+  let objectID: String
+  let parentChangeIDs: [String]
+  let payload: Data
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case objectID = "object_id"
+    case parentChangeIDs = "parent_change_ids"
+    case payload
+  }
+}
+
 struct WireDiaryEncryption: Decodable, Sendable {
-  let encryptedKeyNonce: String
-  let encryptedKeyData: String
+  let encryptedKeyNonce: Data
+  let encryptedKeyData: Data
 
   enum CodingKeys: String, CodingKey {
     case encryptedKeyNonce = "encrypted_key_nonce"

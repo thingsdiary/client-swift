@@ -40,20 +40,23 @@ extension Io_Thingsdiary_V1_EncryptedDiary {
   var wire: WireDiary {
     WireDiary(
       id: id,
-      version: version,
       createdAt: createdAt.thingsDiaryDate,
       updatedAt: updatedAt.thingsDiaryDate,
       encryptionKeys: encryptionKeys.map {
         WireEncryptionKey(
-          value: $0.value.base64EncodedString(), status: $0.status == .active ? "active" : "")
+          value: $0.value, status: $0.status == .active ? "active" : "")
       },
-      encryption: WireDiaryEncryption(
-        encryptedKeyNonce: encryption.encryptedKeyNonce.base64EncodedString(),
-        encryptedKeyData: encryption.encryptedKeyData.base64EncodedString()
-      ),
-      details: WireEncryptedData(
-        nonce: details.nonce.base64EncodedString(),
-        data: details.data.base64EncodedString()
+      change: WireEncryptedChange(
+        change: WireChange(
+          id: change.change.id,
+          objectID: change.change.objectID,
+          parentChangeIDs: change.change.parentChangeIds,
+          payload: change.change.payload
+        ),
+        encryption: WireDiaryEncryption(
+          encryptedKeyNonce: change.encryption.encryptedKeyNonce,
+          encryptedKeyData: change.encryption.encryptedKeyData
+        )
       )
     )
   }

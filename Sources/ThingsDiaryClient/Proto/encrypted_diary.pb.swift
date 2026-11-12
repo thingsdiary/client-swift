@@ -27,9 +27,6 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedDiary: Sendable {
 
   public var id: String = String()
 
-  /// NOTE: This field was marked as deprecated in the .proto file.
-  public var version: UInt64 = 0
-
   public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
     get {_createdAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
     set {_createdAt = newValue}
@@ -50,23 +47,14 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedDiary: Sendable {
 
   public var encryptionKeys: [Io_Thingsdiary_V1_DiaryEncryptionKey] = []
 
-  public var encryption: Io_Thingsdiary_V1_Encryption {
-    get {_encryption ?? Io_Thingsdiary_V1_Encryption()}
-    set {_encryption = newValue}
+  public var change: Io_Thingsdiary_V1_EncryptedChange {
+    get {_change ?? Io_Thingsdiary_V1_EncryptedChange()}
+    set {_change = newValue}
   }
-  /// Returns true if `encryption` has been explicitly set.
-  public var hasEncryption: Bool {self._encryption != nil}
-  /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
-  public mutating func clearEncryption() {self._encryption = nil}
-
-  public var details: Io_Thingsdiary_V1_EncryptedData {
-    get {_details ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_details = newValue}
-  }
-  /// Returns true if `details` has been explicitly set.
-  public var hasDetails: Bool {self._details != nil}
-  /// Clears the value of `details`. Subsequent reads from it will return its default value.
-  public mutating func clearDetails() {self._details = nil}
+  /// Returns true if `change` has been explicitly set.
+  public var hasChange: Bool {self._change != nil}
+  /// Clears the value of `change`. Subsequent reads from it will return its default value.
+  public mutating func clearChange() {self._change = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -74,8 +62,7 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedDiary: Sendable {
 
   fileprivate var _createdAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
   fileprivate var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-  fileprivate var _encryption: Io_Thingsdiary_V1_Encryption? = nil
-  fileprivate var _details: Io_Thingsdiary_V1_EncryptedData? = nil
+  fileprivate var _change: Io_Thingsdiary_V1_EncryptedChange? = nil
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -84,7 +71,7 @@ fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
 nonisolated extension Io_Thingsdiary_V1_EncryptedDiary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EncryptedDiary"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}encryption_keys\0\u{1}encryption\0\u{1}details\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}created_at\0\u{3}updated_at\0\u{3}encryption_keys\0\u{1}change\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -93,12 +80,10 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedDiary: SwiftProtobuf.Message, S
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.version) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._createdAt) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._updatedAt) }()
-      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.encryptionKeys) }()
-      case 6: try { try decoder.decodeSingularMessageField(value: &self._encryption) }()
-      case 7: try { try decoder.decodeSingularMessageField(value: &self._details) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._createdAt) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._updatedAt) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.encryptionKeys) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._change) }()
       default: break
       }
     }
@@ -112,35 +97,27 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedDiary: SwiftProtobuf.Message, S
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
-    if self.version != 0 {
-      try visitor.visitSingularUInt64Field(value: self.version, fieldNumber: 2)
-    }
     try { if let v = self._createdAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     } }()
     try { if let v = self._updatedAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
     if !self.encryptionKeys.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.encryptionKeys, fieldNumber: 5)
+      try visitor.visitRepeatedMessageField(value: self.encryptionKeys, fieldNumber: 4)
     }
-    try { if let v = self._encryption {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    } }()
-    try { if let v = self._details {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+    try { if let v = self._change {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Io_Thingsdiary_V1_EncryptedDiary, rhs: Io_Thingsdiary_V1_EncryptedDiary) -> Bool {
     if lhs.id != rhs.id {return false}
-    if lhs.version != rhs.version {return false}
     if lhs._createdAt != rhs._createdAt {return false}
     if lhs._updatedAt != rhs._updatedAt {return false}
     if lhs.encryptionKeys != rhs.encryptionKeys {return false}
-    if lhs._encryption != rhs._encryption {return false}
-    if lhs._details != rhs._details {return false}
+    if lhs._change != rhs._change {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

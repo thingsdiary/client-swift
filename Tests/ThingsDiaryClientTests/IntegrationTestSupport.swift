@@ -128,15 +128,19 @@ func listDiariesTestResponse(
 
   var diary = Io_Thingsdiary_V1_EncryptedDiary()
   diary.id = "diary-1"
-  diary.version = 42
   diary.createdAt.seconds = 1_700_000_000
   diary.updatedAt.seconds = 1_700_000_001
   diary.encryptionKeys = [key]
-  diary.encryption.diaryKeyID = "key-1"
-  diary.encryption.encryptedKeyNonce = encryptedEntityKey.nonce
-  diary.encryption.encryptedKeyData = encryptedEntityKey.ciphertext
-  diary.details.nonce = encryptedDetails.nonce
-  diary.details.data = encryptedDetails.ciphertext
+  var change = Io_Thingsdiary_V1_Change()
+  change.id = "change-1"
+  change.objectID = "diary-1"
+  change.payload = try Io_Thingsdiary_V1_EncryptedData(
+    ThingsDiaryEncryptedPayload(nonce: encryptedDetails.nonce, data: encryptedDetails.ciphertext)
+  ).serializedData()
+  diary.change.change = change
+  diary.change.encryption.diaryKeyID = "key-1"
+  diary.change.encryption.encryptedKeyNonce = encryptedEntityKey.nonce
+  diary.change.encryption.encryptedKeyData = encryptedEntityKey.ciphertext
 
   var response = Io_Thingsdiary_V1_ListDiariesResponse()
   response.diaries = [diary]
