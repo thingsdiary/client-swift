@@ -39,11 +39,10 @@ extension ThingsDiaryClient {
     params: ThingsDiaryTemplateParams
   ) async throws -> ThingsDiaryTemplate {
     let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
-    let version = UInt64(Date().timeIntervalSince1970 * 1_000)
     return try await putPlaintextTemplate(
       diaryID: diaryID,
       templateID: templateID,
-      version: version,
+      parentChangeIDs: [],
       params: params,
       diaryKeys: diaryKeys
     )
@@ -54,11 +53,11 @@ extension ThingsDiaryClient {
     params: ThingsDiaryTemplateParams
   ) async throws -> ThingsDiaryTemplate {
     let diaryKeys = try await getDiaryKeys(diaryID: template.diaryID)
-    let currentVersion = UInt64(Date().timeIntervalSince1970 * 1_000)
+    let current = try await encryptedTemplate(diaryID: template.diaryID, templateID: template.id)
     return try await putPlaintextTemplate(
       diaryID: template.diaryID,
       templateID: template.id,
-      version: max(currentVersion, template.version + 1),
+      parentChangeIDs: [current.change.change.id],
       params: params,
       diaryKeys: diaryKeys
     )
@@ -105,28 +104,25 @@ extension ThingsDiaryClient {
   func putEncryptedTemplate(
     diaryID: String,
     templateID: String,
-    version: UInt64,
-    encryption: ThingsDiaryEntityEncryption,
-    details: ThingsDiaryEncryptedPayload
+    encryptedChange: Io_Thingsdiary_V1_EncryptedChange
   ) async throws -> WireTemplate {
     var request = Io_Thingsdiary_V1_PutTemplateRequest()
     request.diaryID = diaryID
     request.templateID = templateID
-    request.version = version
-    request.encryption = Io_Thingsdiary_V1_Encryption(encryption)
-    request.details = Io_Thingsdiary_V1_EncryptedData(details)
+    request.encryptedChange = encryptedChange
     let response = try await rpc(
       "io.thingsdiary.v1.template.put",
       request: request,
       response: Io_Thingsdiary_V1_PutTemplateResponse.self
     )
+    try checkTemplateError(response.errorCode)
     return response.template.wire
   }
 
   func putPlaintextTemplate(
     diaryID: String,
     templateID: String,
-    version: UInt64,
+    parentChangeIDs: [String],
     params: ThingsDiaryTemplateParams,
     diaryKeys: [ThingsDiaryEncryptionKey]
   ) async throws -> ThingsDiaryTemplate {
@@ -139,19 +135,29 @@ extension ThingsDiaryClient {
     let plaintext = try payload.serializedData()
     let details = try ThingsDiaryCrypto.encrypt(plaintext, key: entityKey)
     let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(entityKey, key: activeKey.value)
-    let wireTemplate = try await putEncryptedTemplate(
-      diaryID: diaryID,
-      templateID: templateID,
-      version: version,
-      encryption: ThingsDiaryEntityEncryption(
-        diaryKeyID: activeKey.id,
-        encryptedKeyNonce: encryptedEntityKey.nonce,
-        encryptedKeyData: encryptedEntityKey.ciphertext
-      ),
-      details: ThingsDiaryEncryptedPayload(
+    var change = Io_Thingsdiary_V1_Change()
+    change.id = UUID().uuidString.lowercased()
+    if !parentChangeIDs.isEmpty { change.objectID = templateID }
+    change.parentChangeIds = parentChangeIDs
+    change.payload = try Io_Thingsdiary_V1_EncryptedData(
+      ThingsDiaryEncryptedPayload(
         nonce: details.nonce,
         data: details.ciphertext
       )
+    ).serializedData()
+    var encryptedChange = Io_Thingsdiary_V1_EncryptedChange()
+    encryptedChange.change = change
+    encryptedChange.encryption = Io_Thingsdiary_V1_Encryption(
+      ThingsDiaryEntityEncryption(
+        diaryKeyID: activeKey.id,
+        encryptedKeyNonce: encryptedEntityKey.nonce,
+        encryptedKeyData: encryptedEntityKey.ciphertext
+      )
+    )
+    let wireTemplate = try await putEncryptedTemplate(
+      diaryID: diaryID,
+      templateID: templateID,
+      encryptedChange: encryptedChange
     )
     return try decrypt(wireTemplate, diaryKeys: diaryKeys)
   }
@@ -161,29 +167,35 @@ extension ThingsDiaryClient {
     templateID: String,
     soft: Bool? = nil
   ) async throws {
+    let template = try await encryptedTemplate(diaryID: diaryID, templateID: templateID)
     var request = Io_Thingsdiary_V1_DeleteTemplateRequest()
     request.diaryID = diaryID
     request.templateID = templateID
     if let soft { request.soft = soft }
-    _ = try await rpc(
+    request.encryptedChange = templateStateChange(for: template)
+    let response = try await rpc(
       "io.thingsdiary.v1.template.delete",
       request: request,
       response: Io_Thingsdiary_V1_DeleteTemplateResponse.self
     )
+    try checkTemplateError(response.errorCode)
   }
 
   public func restoreTemplate(diaryID: String, templateID: String) async throws
     -> ThingsDiaryTemplate
   {
     let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
+    let template = try await encryptedTemplate(diaryID: diaryID, templateID: templateID)
     var request = Io_Thingsdiary_V1_RestoreTemplateRequest()
     request.diaryID = diaryID
     request.templateID = templateID
+    request.encryptedChange = templateStateChange(for: template)
     let response = try await rpc(
       "io.thingsdiary.v1.template.restore",
       request: request,
       response: Io_Thingsdiary_V1_RestoreTemplateResponse.self
     )
+    try checkTemplateError(response.errorCode)
     return try decrypt(response.template.wire, diaryKeys: diaryKeys)
   }
 
@@ -193,20 +205,23 @@ extension ThingsDiaryClient {
   ) throws -> ThingsDiaryTemplate {
     guard
       let diaryKey = diaryKeys.first(where: {
-        $0.id == template.encryption.diaryKeyID
+        $0.id == template.change.encryption.diaryKeyID
       })
     else {
       throw ThingsDiaryClientError.missingActiveEncryptionKey
     }
     let entityKey = try ThingsDiaryCrypto.decrypt(
-      template.encryption.encryptedKeyData,
+      template.change.encryption.encryptedKeyData,
       key: diaryKey.value,
-      nonce: template.encryption.encryptedKeyNonce
+      nonce: template.change.encryption.encryptedKeyNonce
+    )
+    let encryptedPayload = try Io_Thingsdiary_V1_EncryptedData(
+      serializedBytes: template.change.change.payload
     )
     let detailsData = try ThingsDiaryCrypto.decrypt(
-      template.details.data,
+      encryptedPayload.data,
       key: entityKey,
-      nonce: template.details.nonce
+      nonce: encryptedPayload.nonce
     )
     let details = try Io_Thingsdiary_V1_TemplateDetails(serializedBytes: detailsData)
     return ThingsDiaryTemplate(
@@ -216,9 +231,27 @@ extension ThingsDiaryClient {
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
       deletedAt: template.deletedAt,
-      removedAt: template.removedAt,
-      version: template.version
+      removedAt: template.removedAt
     )
+  }
+}
+
+private func templateStateChange(for template: WireTemplate) -> Io_Thingsdiary_V1_EncryptedChange {
+  var change = Io_Thingsdiary_V1_Change()
+  change.id = UUID().uuidString.lowercased()
+  change.objectID = template.id
+  change.parentChangeIds = [template.change.change.id]
+  change.payload = template.change.change.payload
+
+  var encryptedChange = Io_Thingsdiary_V1_EncryptedChange()
+  encryptedChange.change = change
+  encryptedChange.encryption = Io_Thingsdiary_V1_Encryption(template.change.encryption)
+  return encryptedChange
+}
+
+private func checkTemplateError(_ errorCode: Io_Thingsdiary_V1_ErrorCode) throws {
+  guard errorCode == .unspecified else {
+    throw ThingsDiaryClientError.apiError(errorCode.rawValue)
   }
 }
 

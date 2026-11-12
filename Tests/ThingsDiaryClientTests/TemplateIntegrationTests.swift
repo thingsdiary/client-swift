@@ -18,7 +18,6 @@ func serverTemplateOperations() async throws {
   let fetched = try await session.client.getTemplate(diaryID: diary.id, templateID: created.id)
   #expect(fetched.id == created.id)
   #expect(fetched.content == created.content)
-  #expect(fetched.version == created.version)
 
   let listed = try await session.client.templates(diaryID: diary.id)
   #expect(listed.items.count == 1)
@@ -31,7 +30,6 @@ func serverTemplateOperations() async throws {
   )
   #expect(updated.id == created.id)
   #expect(updated.content == "# Updated server template")
-  #expect(updated.version > created.version)
 
   await session.client.disconnect()
 }

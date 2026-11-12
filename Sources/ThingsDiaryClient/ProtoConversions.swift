@@ -113,13 +113,19 @@ extension Io_Thingsdiary_V1_EncryptedTemplate {
     WireTemplate(
       id: id,
       diaryID: diaryID,
-      version: version,
       createdAt: createdAt.thingsDiaryDate,
       updatedAt: updatedAt.thingsDiaryDate,
       deletedAt: hasDeletedAt ? deletedAt.thingsDiaryDate : nil,
       removedAt: hasRemovedAt ? removedAt.thingsDiaryDate : nil,
-      encryption: encryption.model,
-      details: details.model
+      change: WireTemplateEncryptedChange(
+        change: WireChange(
+          id: change.change.id,
+          objectID: change.change.objectID,
+          parentChangeIDs: change.change.parentChangeIds,
+          payload: change.change.payload
+        ),
+        encryption: change.encryption.model
+      )
     )
   }
 }
