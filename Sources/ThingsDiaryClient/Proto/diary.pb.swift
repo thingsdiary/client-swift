@@ -69,6 +69,8 @@ public nonisolated struct Io_Thingsdiary_V1_CreateDiaryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  public var errorCode: Io_Thingsdiary_V1_ErrorCode = .unspecified
+
   public var diaryID: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -206,6 +208,8 @@ public nonisolated struct Io_Thingsdiary_V1_PutDiaryResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  public var errorCode: Io_Thingsdiary_V1_ErrorCode = .unspecified
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -252,6 +256,8 @@ public nonisolated struct Io_Thingsdiary_V1_DeleteDiaryResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  public var errorCode: Io_Thingsdiary_V1_ErrorCode = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -363,7 +369,7 @@ nonisolated extension Io_Thingsdiary_V1_CreateDiaryRequest: SwiftProtobuf.Messag
 
 nonisolated extension Io_Thingsdiary_V1_CreateDiaryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CreateDiaryResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}diary_id\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}error_code\0\u{3}diary_id\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -371,20 +377,25 @@ nonisolated extension Io_Thingsdiary_V1_CreateDiaryResponse: SwiftProtobuf.Messa
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.diaryID) }()
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.errorCode) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.diaryID) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.errorCode != .unspecified {
+      try visitor.visitSingularEnumField(value: self.errorCode, fieldNumber: 1)
+    }
     if !self.diaryID.isEmpty {
-      try visitor.visitSingularStringField(value: self.diaryID, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: self.diaryID, fieldNumber: 2)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Io_Thingsdiary_V1_CreateDiaryResponse, rhs: Io_Thingsdiary_V1_CreateDiaryResponse) -> Bool {
+    if lhs.errorCode != rhs.errorCode {return false}
     if lhs.diaryID != rhs.diaryID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -613,18 +624,29 @@ nonisolated extension Io_Thingsdiary_V1_PutDiaryRequest: SwiftProtobuf.Message, 
 
 nonisolated extension Io_Thingsdiary_V1_PutDiaryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".PutDiaryResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}error_code\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.errorCode) }()
+      default: break
+      }
+    }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.errorCode != .unspecified {
+      try visitor.visitSingularEnumField(value: self.errorCode, fieldNumber: 1)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Io_Thingsdiary_V1_PutDiaryResponse, rhs: Io_Thingsdiary_V1_PutDiaryResponse) -> Bool {
+    if lhs.errorCode != rhs.errorCode {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -706,18 +728,29 @@ nonisolated extension Io_Thingsdiary_V1_DeleteDiaryRequest: SwiftProtobuf.Messag
 
 nonisolated extension Io_Thingsdiary_V1_DeleteDiaryResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".DeleteDiaryResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}error_code\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.errorCode) }()
+      default: break
+      }
+    }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.errorCode != .unspecified {
+      try visitor.visitSingularEnumField(value: self.errorCode, fieldNumber: 1)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Io_Thingsdiary_V1_DeleteDiaryResponse, rhs: Io_Thingsdiary_V1_DeleteDiaryResponse) -> Bool {
+    if lhs.errorCode != rhs.errorCode {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

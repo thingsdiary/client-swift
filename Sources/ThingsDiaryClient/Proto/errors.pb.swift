@@ -33,6 +33,8 @@ public nonisolated enum Io_Thingsdiary_V1_ErrorCode: SwiftProtobuf.Enum, Swift.C
   case resourceExhausted // = 8
   case `internal` // = 9
   case unknownMethod // = 10
+  case badData // = 11
+  case diariesLimitReached // = 12
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -52,6 +54,8 @@ public nonisolated enum Io_Thingsdiary_V1_ErrorCode: SwiftProtobuf.Enum, Swift.C
     case 8: self = .resourceExhausted
     case 9: self = .internal
     case 10: self = .unknownMethod
+    case 11: self = .badData
+    case 12: self = .diariesLimitReached
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -69,6 +73,8 @@ public nonisolated enum Io_Thingsdiary_V1_ErrorCode: SwiftProtobuf.Enum, Swift.C
     case .resourceExhausted: return 8
     case .internal: return 9
     case .unknownMethod: return 10
+    case .badData: return 11
+    case .diariesLimitReached: return 12
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -86,6 +92,8 @@ public nonisolated enum Io_Thingsdiary_V1_ErrorCode: SwiftProtobuf.Enum, Swift.C
     .resourceExhausted,
     .internal,
     .unknownMethod,
+    .badData,
+    .diariesLimitReached,
   ]
 
 }
@@ -109,7 +117,7 @@ public nonisolated struct Io_Thingsdiary_V1_Error: Sendable {
 fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
 nonisolated extension Io_Thingsdiary_V1_ErrorCode: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0ERROR_CODE_UNSPECIFIED\0\u{1}ERROR_CODE_INVALID_ARGUMENT\0\u{1}ERROR_CODE_UNAUTHENTICATED\0\u{1}ERROR_CODE_PERMISSION_DENIED\0\u{1}ERROR_CODE_NOT_FOUND\0\u{1}ERROR_CODE_ALREADY_EXISTS\0\u{1}ERROR_CODE_CONFLICT\0\u{1}ERROR_CODE_FAILED_PRECONDITION\0\u{1}ERROR_CODE_RESOURCE_EXHAUSTED\0\u{1}ERROR_CODE_INTERNAL\0\u{1}ERROR_CODE_UNKNOWN_METHOD\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0ERROR_CODE_UNSPECIFIED\0\u{1}ERROR_CODE_INVALID_ARGUMENT\0\u{1}ERROR_CODE_UNAUTHENTICATED\0\u{1}ERROR_CODE_PERMISSION_DENIED\0\u{1}ERROR_CODE_NOT_FOUND\0\u{1}ERROR_CODE_ALREADY_EXISTS\0\u{1}ERROR_CODE_CONFLICT\0\u{1}ERROR_CODE_FAILED_PRECONDITION\0\u{1}ERROR_CODE_RESOURCE_EXHAUSTED\0\u{1}ERROR_CODE_INTERNAL\0\u{1}ERROR_CODE_UNKNOWN_METHOD\0\u{1}ERROR_CODE_BAD_DATA\0\u{1}ERROR_CODE_DIARIES_LIMIT_REACHED\0")
 }
 
 nonisolated extension Io_Thingsdiary_V1_Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
