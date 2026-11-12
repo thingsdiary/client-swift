@@ -8,6 +8,17 @@ import Testing
 func deleteTopicUsesProtoOptionals() async throws {
   let realtime = MockRealtimeTransport()
   realtime.handler = { method, data in
+    if method == "io.thingsdiary.v1.topic.get" {
+      var response = Io_Thingsdiary_V1_GetTopicResponse()
+      response.topic.id = "topic-1"
+      response.topic.diaryID = "diary-1"
+      response.topic.change.change.id = "head-1"
+      response.topic.change.change.objectID = "topic-1"
+      response.topic.change.change.payload = Data([1, 2, 3])
+      response.topic.change.encryption.diaryKeyID = "key-1"
+      return try response.serializedData()
+    }
+
     #expect(method == "io.thingsdiary.v1.topic.delete")
     let request = try Io_Thingsdiary_V1_DeleteTopicRequest(serializedBytes: data)
     #expect(request.diaryID == "diary-1")
@@ -15,16 +26,21 @@ func deleteTopicUsesProtoOptionals() async throws {
     #expect(request.hasSoft)
     #expect(request.soft)
     #expect(request.deleteEntries)
-    return Data()
+    #expect(request.encryptedChange.change.parentChangeIds == ["head-1"])
+    var response = Io_Thingsdiary_V1_DeleteTopicResponse()
+    response.errorCode = .failedPrecondition
+    return try response.serializedData()
   }
   let client = try await authenticatedMockClient(realtime: realtime)
 
-  try await client.deleteTopic(
-    diaryID: "diary-1",
-    topicID: "topic-1",
-    deleteEntries: true,
-    soft: true
-  )
+  await #expect(throws: ThingsDiaryClientError.apiError(7)) {
+    try await client.deleteTopic(
+      diaryID: "diary-1",
+      topicID: "topic-1",
+      deleteEntries: true,
+      soft: true
+    )
+  }
 }
 
 @Test("Topic create, get, list, and update return decrypted server data")
@@ -52,7 +68,6 @@ func serverTopicOperations() async throws {
   #expect(fetched.title == created.title)
   #expect(fetched.description == created.description)
   #expect(fetched.color == created.color)
-  #expect(fetched.version == created.version)
 
   let listed = try await session.client.topics(diaryID: diary.id)
   #expect(listed.items.count == 1)
@@ -69,7 +84,6 @@ func serverTopicOperations() async throws {
   )
   #expect(updated.id == created.id)
   #expect(updated.title == "Updated server topic")
-  #expect(updated.version > created.version)
 
   await session.client.disconnect()
 }
