@@ -103,15 +103,6 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedEntry: @unchecked Sendable 
   /// Clears the value of `details`. Subsequent reads from it will return its default value.
   public mutating func clearDetails() {_uniqueStorage()._details = nil}
 
-  public var preview: Io_Thingsdiary_V1_EncryptedData {
-    get {_storage._preview ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_uniqueStorage()._preview = newValue}
-  }
-  /// Returns true if `preview` has been explicitly set.
-  public var hasPreview: Bool {_storage._preview != nil}
-  /// Clears the value of `preview`. Subsequent reads from it will return its default value.
-  public mutating func clearPreview() {_uniqueStorage()._preview = nil}
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -125,7 +116,7 @@ fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
 nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EncryptedEntry"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}removed_at\0\u{3}topic_id\0\u{1}encryption\0\u{1}details\0\u{1}preview\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}removed_at\0\u{3}topic_id\0\u{1}encryption\0\u{1}details\0")
 
   fileprivate class _StorageClass {
     var _id: String = String()
@@ -138,7 +129,6 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
     var _topicID: String? = nil
     var _encryption: Io_Thingsdiary_V1_Encryption? = nil
     var _details: Io_Thingsdiary_V1_EncryptedData? = nil
-    var _preview: Io_Thingsdiary_V1_EncryptedData? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -159,7 +149,6 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
       _topicID = source._topicID
       _encryption = source._encryption
       _details = source._details
-      _preview = source._preview
     }
   }
 
@@ -188,7 +177,6 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
         case 8: try { try decoder.decodeSingularStringField(value: &_storage._topicID) }()
         case 9: try { try decoder.decodeSingularMessageField(value: &_storage._encryption) }()
         case 10: try { try decoder.decodeSingularMessageField(value: &_storage._details) }()
-        case 11: try { try decoder.decodeSingularMessageField(value: &_storage._preview) }()
         default: break
         }
       }
@@ -231,9 +219,6 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
       try { if let v = _storage._details {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
       } }()
-      try { if let v = _storage._preview {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -253,7 +238,6 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
         if _storage._topicID != rhs_storage._topicID {return false}
         if _storage._encryption != rhs_storage._encryption {return false}
         if _storage._details != rhs_storage._details {return false}
-        if _storage._preview != rhs_storage._preview {return false}
         return true
       }
       if !storagesAreEqual {return false}

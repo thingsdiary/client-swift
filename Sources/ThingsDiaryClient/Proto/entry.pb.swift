@@ -39,26 +39,6 @@ public nonisolated struct Io_Thingsdiary_V1_EntryDetails: Sendable {
   public init() {}
 }
 
-/// Plaintext serialized before encrypting EncryptedEntry.preview.
-/// The current clients use the same content and flags as EntryDetails.
-public nonisolated struct Io_Thingsdiary_V1_EntryPreview: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var content: String = String()
-
-  public var archived: Bool = false
-
-  public var bookmarked: Bool = false
-
-  public var previewHidden: Bool = false
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
 /// Centrifugo methods: io.thingsdiary.v1.entry.{get,list,put,delete,restore}.
 public nonisolated struct Io_Thingsdiary_V1_GetEntryRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -179,15 +159,6 @@ public nonisolated struct Io_Thingsdiary_V1_PutEntryRequest: Sendable {
   /// Clears the value of `details`. Subsequent reads from it will return its default value.
   public mutating func clearDetails() {self._details = nil}
 
-  public var preview: Io_Thingsdiary_V1_EncryptedData {
-    get {_preview ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_preview = newValue}
-  }
-  /// Returns true if `preview` has been explicitly set.
-  public var hasPreview: Bool {self._preview != nil}
-  /// Clears the value of `preview`. Subsequent reads from it will return its default value.
-  public mutating func clearPreview() {self._preview = nil}
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -195,7 +166,6 @@ public nonisolated struct Io_Thingsdiary_V1_PutEntryRequest: Sendable {
   fileprivate var _topicID: String? = nil
   fileprivate var _encryption: Io_Thingsdiary_V1_Encryption? = nil
   fileprivate var _details: Io_Thingsdiary_V1_EncryptedData? = nil
-  fileprivate var _preview: Io_Thingsdiary_V1_EncryptedData? = nil
 }
 
 public nonisolated struct Io_Thingsdiary_V1_PutEntryResponse: Sendable {
@@ -437,51 +407,6 @@ nonisolated extension Io_Thingsdiary_V1_EntryDetails: SwiftProtobuf.Message, Swi
   }
 }
 
-nonisolated extension Io_Thingsdiary_V1_EntryPreview: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".EntryPreview"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}content\0\u{1}archived\0\u{1}bookmarked\0\u{3}preview_hidden\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.content) }()
-      case 2: try { try decoder.decodeSingularBoolField(value: &self.archived) }()
-      case 3: try { try decoder.decodeSingularBoolField(value: &self.bookmarked) }()
-      case 4: try { try decoder.decodeSingularBoolField(value: &self.previewHidden) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.content.isEmpty {
-      try visitor.visitSingularStringField(value: self.content, fieldNumber: 1)
-    }
-    if self.archived != false {
-      try visitor.visitSingularBoolField(value: self.archived, fieldNumber: 2)
-    }
-    if self.bookmarked != false {
-      try visitor.visitSingularBoolField(value: self.bookmarked, fieldNumber: 3)
-    }
-    if self.previewHidden != false {
-      try visitor.visitSingularBoolField(value: self.previewHidden, fieldNumber: 4)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Io_Thingsdiary_V1_EntryPreview, rhs: Io_Thingsdiary_V1_EntryPreview) -> Bool {
-    if lhs.content != rhs.content {return false}
-    if lhs.archived != rhs.archived {return false}
-    if lhs.bookmarked != rhs.bookmarked {return false}
-    if lhs.previewHidden != rhs.previewHidden {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 nonisolated extension Io_Thingsdiary_V1_GetEntryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GetEntryRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}diary_id\0\u{3}entry_id\0")
@@ -631,7 +556,7 @@ nonisolated extension Io_Thingsdiary_V1_ListEntriesResponse: SwiftProtobuf.Messa
 
 nonisolated extension Io_Thingsdiary_V1_PutEntryRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".PutEntryRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}diary_id\0\u{3}entry_id\0\u{1}version\0\u{3}topic_id\0\u{1}encryption\0\u{1}details\0\u{1}preview\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}diary_id\0\u{3}entry_id\0\u{1}version\0\u{3}topic_id\0\u{1}encryption\0\u{1}details\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -645,7 +570,6 @@ nonisolated extension Io_Thingsdiary_V1_PutEntryRequest: SwiftProtobuf.Message, 
       case 4: try { try decoder.decodeSingularStringField(value: &self._topicID) }()
       case 5: try { try decoder.decodeSingularMessageField(value: &self._encryption) }()
       case 6: try { try decoder.decodeSingularMessageField(value: &self._details) }()
-      case 7: try { try decoder.decodeSingularMessageField(value: &self._preview) }()
       default: break
       }
     }
@@ -674,9 +598,6 @@ nonisolated extension Io_Thingsdiary_V1_PutEntryRequest: SwiftProtobuf.Message, 
     try { if let v = self._details {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
     } }()
-    try { if let v = self._preview {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -687,7 +608,6 @@ nonisolated extension Io_Thingsdiary_V1_PutEntryRequest: SwiftProtobuf.Message, 
     if lhs._topicID != rhs._topicID {return false}
     if lhs._encryption != rhs._encryption {return false}
     if lhs._details != rhs._details {return false}
-    if lhs._preview != rhs._preview {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

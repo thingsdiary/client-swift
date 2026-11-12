@@ -18,12 +18,6 @@ func domainPayloadWireFormat() throws {
   entry.previewHidden = true
   try checkDomainWire(entry, "0a0a48656c6c6f20f09f8c8d10012001")
 
-  var preview = Io_Thingsdiary_V1_EntryPreview()
-  preview.content = entry.content
-  preview.archived = entry.archived
-  preview.previewHidden = entry.previewHidden
-  try checkDomainWire(preview, "0a0a48656c6c6f20f09f8c8d10012001")
-
   var topic = Io_Thingsdiary_V1_TopicDetails()
   topic.title = "Topic"
   topic.color = "#123456"

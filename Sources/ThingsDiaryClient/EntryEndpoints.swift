@@ -108,8 +108,7 @@ extension ThingsDiaryClient {
     version: UInt64,
     topicID: String? = nil,
     encryption: ThingsDiaryEntityEncryption,
-    details: ThingsDiaryEncryptedPayload,
-    preview: ThingsDiaryEncryptedPayload
+    details: ThingsDiaryEncryptedPayload
   ) async throws -> WireEntry {
     var request = Io_Thingsdiary_V1_PutEntryRequest()
     request.diaryID = diaryID
@@ -118,7 +117,6 @@ extension ThingsDiaryClient {
     if let topicID { request.topicID = topicID }
     request.encryption = Io_Thingsdiary_V1_Encryption(encryption)
     request.details = Io_Thingsdiary_V1_EncryptedData(details)
-    request.preview = Io_Thingsdiary_V1_EncryptedData(preview)
     let response = try await rpc(
       "io.thingsdiary.v1.entry.put",
       request: request,
@@ -144,12 +142,6 @@ extension ThingsDiaryClient {
     payload.bookmarked = params.bookmarked
     payload.previewHidden = params.previewHidden
     let details = try ThingsDiaryCrypto.encrypt(payload.serializedData(), key: entityKey)
-    var previewPayload = Io_Thingsdiary_V1_EntryPreview()
-    previewPayload.content = params.content
-    previewPayload.archived = params.archived
-    previewPayload.bookmarked = params.bookmarked
-    previewPayload.previewHidden = params.previewHidden
-    let preview = try ThingsDiaryCrypto.encrypt(previewPayload.serializedData(), key: entityKey)
     let encryptedEntityKey = try ThingsDiaryCrypto.encrypt(
       entityKey,
       key: activeKey.value
@@ -167,10 +159,6 @@ extension ThingsDiaryClient {
       details: ThingsDiaryEncryptedPayload(
         nonce: details.nonce,
         data: details.ciphertext
-      ),
-      preview: ThingsDiaryEncryptedPayload(
-        nonce: preview.nonce,
-        data: preview.ciphertext
       )
     )
     return try decrypt(wireEntry, diaryKeys: diaryKeys)
