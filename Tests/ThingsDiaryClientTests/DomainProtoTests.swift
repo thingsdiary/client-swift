@@ -36,13 +36,14 @@ private func checkDomainWire<T: SwiftProtobuf.Message & Equatable>(_ value: T, _
 
 @Test("Encrypted resource timestamps preserve absence and presence")
 func encryptedResourceTimestampPresence() throws {
-  // Field 6 is absent and field 7 contains a Timestamp of one second.
-  let bytes: [UInt8] = [0x3a, 0x02, 0x08, 0x01]
+  // Field 5 is absent and field 6 contains a Timestamp of one second.
+  let entryBytes: [UInt8] = [0x32, 0x02, 0x08, 0x01]
+  let legacyEntityBytes: [UInt8] = [0x3a, 0x02, 0x08, 0x01]
   let removedAt = Date(timeIntervalSince1970: 1)
 
-  let entry = try Io_Thingsdiary_V1_EncryptedEntry(serializedBytes: bytes).wire
-  let topic = try Io_Thingsdiary_V1_EncryptedTopic(serializedBytes: bytes).wire
-  let template = try Io_Thingsdiary_V1_EncryptedTemplate(serializedBytes: bytes).wire
+  let entry = try Io_Thingsdiary_V1_EncryptedEntry(serializedBytes: entryBytes).wire
+  let topic = try Io_Thingsdiary_V1_EncryptedTopic(serializedBytes: legacyEntityBytes).wire
+  let template = try Io_Thingsdiary_V1_EncryptedTemplate(serializedBytes: legacyEntityBytes).wire
 
   #expect(entry.deletedAt == nil)
   #expect(entry.removedAt == removedAt)

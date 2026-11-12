@@ -35,12 +35,6 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedEntry: @unchecked Sendable 
     set {_uniqueStorage()._diaryID = newValue}
   }
 
-  /// NOTE: This field was marked as deprecated in the .proto file.
-  public var version: UInt64 {
-    get {_storage._version}
-    set {_uniqueStorage()._version = newValue}
-  }
-
   public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
     get {_storage._createdAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
     set {_uniqueStorage()._createdAt = newValue}
@@ -86,23 +80,14 @@ public nonisolated struct Io_Thingsdiary_V1_EncryptedEntry: @unchecked Sendable 
   /// Clears the value of `topicID`. Subsequent reads from it will return its default value.
   public mutating func clearTopicID() {_uniqueStorage()._topicID = nil}
 
-  public var encryption: Io_Thingsdiary_V1_Encryption {
-    get {_storage._encryption ?? Io_Thingsdiary_V1_Encryption()}
-    set {_uniqueStorage()._encryption = newValue}
+  public var change: Io_Thingsdiary_V1_EncryptedChange {
+    get {_storage._change ?? Io_Thingsdiary_V1_EncryptedChange()}
+    set {_uniqueStorage()._change = newValue}
   }
-  /// Returns true if `encryption` has been explicitly set.
-  public var hasEncryption: Bool {_storage._encryption != nil}
-  /// Clears the value of `encryption`. Subsequent reads from it will return its default value.
-  public mutating func clearEncryption() {_uniqueStorage()._encryption = nil}
-
-  public var details: Io_Thingsdiary_V1_EncryptedData {
-    get {_storage._details ?? Io_Thingsdiary_V1_EncryptedData()}
-    set {_uniqueStorage()._details = newValue}
-  }
-  /// Returns true if `details` has been explicitly set.
-  public var hasDetails: Bool {_storage._details != nil}
-  /// Clears the value of `details`. Subsequent reads from it will return its default value.
-  public mutating func clearDetails() {_uniqueStorage()._details = nil}
+  /// Returns true if `change` has been explicitly set.
+  public var hasChange: Bool {_storage._change != nil}
+  /// Clears the value of `change`. Subsequent reads from it will return its default value.
+  public mutating func clearChange() {_uniqueStorage()._change = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -117,19 +102,17 @@ fileprivate nonisolated let _protobuf_package = "io.thingsdiary.v1"
 
 nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EncryptedEntry"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{1}version\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}removed_at\0\u{3}topic_id\0\u{1}encryption\0\u{1}details\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}diary_id\0\u{3}created_at\0\u{3}updated_at\0\u{3}deleted_at\0\u{3}removed_at\0\u{3}topic_id\0\u{1}change\0")
 
   fileprivate class _StorageClass {
     var _id: String = String()
     var _diaryID: String = String()
-    var _version: UInt64 = 0
     var _createdAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     var _deletedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     var _removedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
     var _topicID: String? = nil
-    var _encryption: Io_Thingsdiary_V1_Encryption? = nil
-    var _details: Io_Thingsdiary_V1_EncryptedData? = nil
+    var _change: Io_Thingsdiary_V1_EncryptedChange? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -142,14 +125,12 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
     init(copying source: _StorageClass) {
       _id = source._id
       _diaryID = source._diaryID
-      _version = source._version
       _createdAt = source._createdAt
       _updatedAt = source._updatedAt
       _deletedAt = source._deletedAt
       _removedAt = source._removedAt
       _topicID = source._topicID
-      _encryption = source._encryption
-      _details = source._details
+      _change = source._change
     }
   }
 
@@ -170,14 +151,12 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
         switch fieldNumber {
         case 1: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
         case 2: try { try decoder.decodeSingularStringField(value: &_storage._diaryID) }()
-        case 3: try { try decoder.decodeSingularUInt64Field(value: &_storage._version) }()
-        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._createdAt) }()
-        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._updatedAt) }()
-        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._deletedAt) }()
-        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._removedAt) }()
-        case 8: try { try decoder.decodeSingularStringField(value: &_storage._topicID) }()
-        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._encryption) }()
-        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._details) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._createdAt) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._updatedAt) }()
+        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._deletedAt) }()
+        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._removedAt) }()
+        case 7: try { try decoder.decodeSingularStringField(value: &_storage._topicID) }()
+        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._change) }()
         default: break
         }
       }
@@ -196,29 +175,23 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
       if !_storage._diaryID.isEmpty {
         try visitor.visitSingularStringField(value: _storage._diaryID, fieldNumber: 2)
       }
-      if _storage._version != 0 {
-        try visitor.visitSingularUInt64Field(value: _storage._version, fieldNumber: 3)
-      }
       try { if let v = _storage._createdAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       } }()
       try { if let v = _storage._updatedAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
       } }()
       try { if let v = _storage._deletedAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
       } }()
       try { if let v = _storage._removedAt {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
       } }()
       try { if let v = _storage._topicID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 8)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 7)
       } }()
-      try { if let v = _storage._encryption {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-      } }()
-      try { if let v = _storage._details {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      try { if let v = _storage._change {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -231,14 +204,12 @@ nonisolated extension Io_Thingsdiary_V1_EncryptedEntry: SwiftProtobuf.Message, S
         let rhs_storage = _args.1
         if _storage._id != rhs_storage._id {return false}
         if _storage._diaryID != rhs_storage._diaryID {return false}
-        if _storage._version != rhs_storage._version {return false}
         if _storage._createdAt != rhs_storage._createdAt {return false}
         if _storage._updatedAt != rhs_storage._updatedAt {return false}
         if _storage._deletedAt != rhs_storage._deletedAt {return false}
         if _storage._removedAt != rhs_storage._removedAt {return false}
         if _storage._topicID != rhs_storage._topicID {return false}
-        if _storage._encryption != rhs_storage._encryption {return false}
-        if _storage._details != rhs_storage._details {return false}
+        if _storage._change != rhs_storage._change {return false}
         return true
       }
       if !storagesAreEqual {return false}

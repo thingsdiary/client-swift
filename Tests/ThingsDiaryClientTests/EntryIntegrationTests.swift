@@ -1,6 +1,54 @@
+import Foundation
 import Testing
 
 @testable import ThingsDiaryClient
+
+@Test("Entry deletion appends a change and maps response errors")
+func deleteEntryUsesCurrentChange() async throws {
+  let realtime = MockRealtimeTransport()
+  realtime.handler = { method, data in
+    switch method {
+    case "io.thingsdiary.v1.entry.get":
+      let request = try Io_Thingsdiary_V1_GetEntryRequest(serializedBytes: data)
+      #expect(request.diaryID == "diary-1")
+      #expect(request.entryID == "entry-1")
+
+      var response = Io_Thingsdiary_V1_GetEntryResponse()
+      response.entry.id = "entry-1"
+      response.entry.diaryID = "diary-1"
+      response.entry.change.change.id = "head-1"
+      response.entry.change.change.objectID = "entry-1"
+      response.entry.change.change.payload = Data([1, 2, 3])
+      response.entry.change.encryption.diaryKeyID = "key-1"
+      return try response.serializedData()
+    case "io.thingsdiary.v1.entry.delete":
+      let request = try Io_Thingsdiary_V1_DeleteEntryRequest(serializedBytes: data)
+      #expect(request.diaryID == "diary-1")
+      #expect(request.entryID == "entry-1")
+      #expect(request.soft)
+      #expect(request.encryptedChange.change.objectID == "entry-1")
+      #expect(request.encryptedChange.change.parentChangeIds == ["head-1"])
+      #expect(request.encryptedChange.change.payload == Data([1, 2, 3]))
+      #expect(request.encryptedChange.encryption.diaryKeyID == "key-1")
+
+      var response = Io_Thingsdiary_V1_DeleteEntryResponse()
+      response.errorCode = .badData
+      return try response.serializedData()
+    default:
+      Issue.record("Unexpected method: \(method)")
+      return Data()
+    }
+  }
+  let client = try await authenticatedMockClient(realtime: realtime)
+
+  await #expect(throws: ThingsDiaryClientError.apiError(11)) {
+    try await client.deleteEntry(
+      diaryID: "diary-1",
+      entryID: "entry-1",
+      soft: true
+    )
+  }
+}
 
 @Test("Entry create, get, list, and update return decrypted server data")
 func serverEntryOperations() async throws {
@@ -33,7 +81,6 @@ func serverEntryOperations() async throws {
   #expect(fetched.id == created.id)
   #expect(fetched.content == created.content)
   #expect(fetched.topicID == created.topicID)
-  #expect(fetched.version == created.version)
 
   let listed = try await session.client.entries(diaryID: diary.id)
   #expect(listed.items.count == 1)
@@ -52,7 +99,6 @@ func serverEntryOperations() async throws {
   #expect(updated.content == "Updated server entry content")
   #expect(updated.archived)
   #expect(updated.previewHidden)
-  #expect(updated.version > created.version)
 
   await session.client.disconnect()
 }

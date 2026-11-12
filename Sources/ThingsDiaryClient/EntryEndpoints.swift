@@ -39,11 +39,10 @@ extension ThingsDiaryClient {
     params: ThingsDiaryEntryParams
   ) async throws -> ThingsDiaryEntry {
     let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
-    let version = UInt64(Date().timeIntervalSince1970 * 1_000)
     return try await putPlaintextEntry(
       diaryID: diaryID,
       entryID: entryID,
-      version: version,
+      parentChangeIDs: [],
       params: params,
       diaryKeys: diaryKeys
     )
@@ -54,11 +53,11 @@ extension ThingsDiaryClient {
     params: ThingsDiaryEntryParams
   ) async throws -> ThingsDiaryEntry {
     let diaryKeys = try await getDiaryKeys(diaryID: entry.diaryID)
-    let currentVersion = UInt64(Date().timeIntervalSince1970 * 1_000)
+    let current = try await encryptedEntry(diaryID: entry.diaryID, entryID: entry.id)
     return try await putPlaintextEntry(
       diaryID: entry.diaryID,
       entryID: entry.id,
-      version: max(currentVersion, entry.version + 1),
+      parentChangeIDs: [current.change.change.id],
       params: params,
       diaryKeys: diaryKeys
     )
@@ -105,30 +104,27 @@ extension ThingsDiaryClient {
   func putEncryptedEntry(
     diaryID: String,
     entryID: String,
-    version: UInt64,
     topicID: String? = nil,
-    encryption: ThingsDiaryEntityEncryption,
-    details: ThingsDiaryEncryptedPayload
+    encryptedChange: Io_Thingsdiary_V1_EncryptedChange
   ) async throws -> WireEntry {
     var request = Io_Thingsdiary_V1_PutEntryRequest()
     request.diaryID = diaryID
     request.entryID = entryID
-    request.version = version
     if let topicID { request.topicID = topicID }
-    request.encryption = Io_Thingsdiary_V1_Encryption(encryption)
-    request.details = Io_Thingsdiary_V1_EncryptedData(details)
+    request.encryptedChange = encryptedChange
     let response = try await rpc(
       "io.thingsdiary.v1.entry.put",
       request: request,
       response: Io_Thingsdiary_V1_PutEntryResponse.self
     )
+    try checkEntryError(response.errorCode)
     return response.entry.wire
   }
 
   func putPlaintextEntry(
     diaryID: String,
     entryID: String,
-    version: UInt64,
+    parentChangeIDs: [String],
     params: ThingsDiaryEntryParams,
     diaryKeys: [ThingsDiaryEncryptionKey]
   ) async throws -> ThingsDiaryEntry {
@@ -146,20 +142,30 @@ extension ThingsDiaryClient {
       entityKey,
       key: activeKey.value
     )
-    let wireEntry = try await putEncryptedEntry(
-      diaryID: diaryID,
-      entryID: entryID,
-      version: version,
-      topicID: params.topicID,
-      encryption: ThingsDiaryEntityEncryption(
-        diaryKeyID: activeKey.id,
-        encryptedKeyNonce: encryptedEntityKey.nonce,
-        encryptedKeyData: encryptedEntityKey.ciphertext
-      ),
-      details: ThingsDiaryEncryptedPayload(
+    var change = Io_Thingsdiary_V1_Change()
+    change.id = UUID().uuidString.lowercased()
+    if !parentChangeIDs.isEmpty { change.objectID = entryID }
+    change.parentChangeIds = parentChangeIDs
+    change.payload = try Io_Thingsdiary_V1_EncryptedData(
+      ThingsDiaryEncryptedPayload(
         nonce: details.nonce,
         data: details.ciphertext
       )
+    ).serializedData()
+    var encryptedChange = Io_Thingsdiary_V1_EncryptedChange()
+    encryptedChange.change = change
+    encryptedChange.encryption = Io_Thingsdiary_V1_Encryption(
+      ThingsDiaryEntityEncryption(
+        diaryKeyID: activeKey.id,
+        encryptedKeyNonce: encryptedEntityKey.nonce,
+        encryptedKeyData: encryptedEntityKey.ciphertext
+      )
+    )
+    let wireEntry = try await putEncryptedEntry(
+      diaryID: diaryID,
+      entryID: entryID,
+      topicID: params.topicID,
+      encryptedChange: encryptedChange
     )
     return try decrypt(wireEntry, diaryKeys: diaryKeys)
   }
@@ -169,27 +175,33 @@ extension ThingsDiaryClient {
     entryID: String,
     soft: Bool? = nil
   ) async throws {
+    let entry = try await encryptedEntry(diaryID: diaryID, entryID: entryID)
     var request = Io_Thingsdiary_V1_DeleteEntryRequest()
     request.diaryID = diaryID
     request.entryID = entryID
     if let soft { request.soft = soft }
-    _ = try await rpc(
+    request.encryptedChange = stateChange(for: entry)
+    let response = try await rpc(
       "io.thingsdiary.v1.entry.delete",
       request: request,
       response: Io_Thingsdiary_V1_DeleteEntryResponse.self
     )
+    try checkEntryError(response.errorCode)
   }
 
   public func restoreEntry(diaryID: String, entryID: String) async throws -> ThingsDiaryEntry {
     let diaryKeys = try await getDiaryKeys(diaryID: diaryID)
+    let entry = try await encryptedEntry(diaryID: diaryID, entryID: entryID)
     var request = Io_Thingsdiary_V1_RestoreEntryRequest()
     request.diaryID = diaryID
     request.entryID = entryID
+    request.encryptedChange = stateChange(for: entry)
     let response = try await rpc(
       "io.thingsdiary.v1.entry.restore",
       request: request,
       response: Io_Thingsdiary_V1_RestoreEntryResponse.self
     )
+    try checkEntryError(response.errorCode)
     return try decrypt(response.entry.wire, diaryKeys: diaryKeys)
   }
 
@@ -199,20 +211,23 @@ extension ThingsDiaryClient {
   ) throws -> ThingsDiaryEntry {
     guard
       let diaryKey = diaryKeys.first(where: {
-        $0.id == entry.encryption.diaryKeyID
+        $0.id == entry.change.encryption.diaryKeyID
       })
     else {
       throw ThingsDiaryClientError.missingActiveEncryptionKey
     }
     let entityKey = try ThingsDiaryCrypto.decrypt(
-      entry.encryption.encryptedKeyData,
+      entry.change.encryption.encryptedKeyData,
       key: diaryKey.value,
-      nonce: entry.encryption.encryptedKeyNonce
+      nonce: entry.change.encryption.encryptedKeyNonce
+    )
+    let encryptedPayload = try Io_Thingsdiary_V1_EncryptedData(
+      serializedBytes: entry.change.change.payload
     )
     let detailsData = try ThingsDiaryCrypto.decrypt(
-      entry.details.data,
+      encryptedPayload.data,
       key: entityKey,
-      nonce: entry.details.nonce
+      nonce: encryptedPayload.nonce
     )
     let details = try Io_Thingsdiary_V1_EntryDetails(serializedBytes: detailsData)
     return ThingsDiaryEntry(
@@ -226,11 +241,29 @@ extension ThingsDiaryClient {
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
       deletedAt: entry.deletedAt,
-      removedAt: entry.removedAt,
-      version: entry.version
+      removedAt: entry.removedAt
     )
   }
 
+}
+
+private func stateChange(for entry: WireEntry) -> Io_Thingsdiary_V1_EncryptedChange {
+  var change = Io_Thingsdiary_V1_Change()
+  change.id = UUID().uuidString.lowercased()
+  change.objectID = entry.id
+  change.parentChangeIds = [entry.change.change.id]
+  change.payload = entry.change.change.payload
+
+  var encryptedChange = Io_Thingsdiary_V1_EncryptedChange()
+  encryptedChange.change = change
+  encryptedChange.encryption = Io_Thingsdiary_V1_Encryption(entry.change.encryption)
+  return encryptedChange
+}
+
+private func checkEntryError(_ errorCode: Io_Thingsdiary_V1_ErrorCode) throws {
+  guard errorCode == .unspecified else {
+    throw ThingsDiaryClientError.apiError(errorCode.rawValue)
+  }
 }
 
 private func randomEntryKey() -> Data {

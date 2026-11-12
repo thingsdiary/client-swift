@@ -216,6 +216,7 @@ public enum ThingsDiaryClientError: Error, Sendable, Equatable {
   case realtimeDisconnected(code: UInt32, reason: String)
   case realtime(String)
   case rpc(code: UInt32, message: String)
+  case apiError(Int)
 }
 
 private struct LoginRequest: Encodable {
@@ -267,7 +268,7 @@ struct WireEncryptedChange: Decodable, Sendable {
   let encryption: WireDiaryEncryption
 }
 
-struct WireChange: Decodable, Sendable {
+struct WireChange: Decodable, Sendable, Equatable {
   let id: String
   let objectID: String
   let parentChangeIDs: [String]

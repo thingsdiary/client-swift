@@ -70,7 +70,6 @@ public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
   public let updatedAt: Date
   public let deletedAt: Date?
   public let removedAt: Date?
-  public let version: UInt64
 
   public init(
     id: String,
@@ -83,8 +82,7 @@ public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
-    removedAt: Date? = nil,
-    version: UInt64
+    removedAt: Date? = nil
   ) {
     self.id = id
     self.diaryID = diaryID
@@ -97,55 +95,43 @@ public struct ThingsDiaryEntry: Sendable, Equatable, Identifiable {
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
     self.removedAt = removedAt
-    self.version = version
   }
 }
 
-struct WireEntry: Codable, Sendable, Equatable {
+struct WireEntry: Sendable, Equatable {
   public let id: String
   public let diaryID: String
-  public let version: UInt64
   public let createdAt: Date
   public let updatedAt: Date
   public let deletedAt: Date?
   public let removedAt: Date?
   public let topicID: String?
-  public let encryption: ThingsDiaryEntityEncryption
-  public let details: ThingsDiaryEncryptedPayload
+  public let change: WireEntryEncryptedChange
 
   init(
     id: String,
     diaryID: String,
-    version: UInt64,
     createdAt: Date,
     updatedAt: Date,
     deletedAt: Date? = nil,
     removedAt: Date? = nil,
     topicID: String? = nil,
-    encryption: ThingsDiaryEntityEncryption,
-    details: ThingsDiaryEncryptedPayload
+    change: WireEntryEncryptedChange
   ) {
     self.id = id
     self.diaryID = diaryID
-    self.version = version
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.deletedAt = deletedAt
     self.removedAt = removedAt
     self.topicID = topicID
-    self.encryption = encryption
-    self.details = details
+    self.change = change
   }
+}
 
-  enum CodingKeys: String, CodingKey {
-    case id, version, encryption, details
-    case diaryID = "diary_id"
-    case createdAt = "created_at"
-    case updatedAt = "updated_at"
-    case deletedAt = "deleted_at"
-    case removedAt = "removed_at"
-    case topicID = "topic_id"
-  }
+struct WireEntryEncryptedChange: Sendable, Equatable {
+  let change: WireChange
+  let encryption: ThingsDiaryEntityEncryption
 }
 
 public struct ThingsDiaryTopicParams: Sendable, Equatable {
